@@ -144,4 +144,19 @@ await scenario("13 listKeys 契约面（{key,label,fallback} 三元组）", () =
 	]);
 });
 
-console.log(passed === 13 ? "\nPASS：13/13 场景全绿" : `\nFAIL：${13 - passed} 项未过`);
+
+await scenario("14 resolveOverride：只认本地化命中（entries/models 层），不落 registry.fallback", () => {
+	const p = tempPack({ registry: { [K]: { label: "人设", fallback: "FALLBACK" } }, layers: { "mimo": { [K]: "家族层" } } });
+	const pb = createPromptbook(p);
+	assert.equal(pb.resolveOverride(K, "mimo-v2.6-flash"), "家族层");
+	assert.equal(pb.resolveOverride(K, "其他模型"), undefined, "无层命中 → undefined（透传信号）");
+	assert.equal(pb.resolve(K, "其他模型"), "FALLBACK", "resolve 仍含 fallback（服务面语义不变）");
+});
+
+await scenario("15 resolveOverride：GUI entries（含 default 键）也算命中", () => {
+	const p = tempPack({ registry: { [K]: { label: "人设", fallback: "FALLBACK" } }, config: { entriesJson: JSON.stringify({ [K]: { default: "GUI默认" } }) } });
+	const pb = createPromptbook(p);
+	assert.equal(pb.resolveOverride(K, "任意模型"), "GUI默认");
+});
+
+console.log(passed === 15 ? "\nPASS：15/15 场景全绿" : `\nFAIL：${15 - passed} 项未过`);

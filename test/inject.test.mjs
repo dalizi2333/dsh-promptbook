@@ -91,11 +91,12 @@ await scenario("4 无 pending route（requestHeader 未折叠 / agent 缺失）�
 	}
 });
 
-await scenario("5 persona 键在链中全部未命中但有 fallback → fallback 成为系统提示词", async () => {
+await scenario("5 透传语义（D20）：无本地化命中时 fallback 不接管，system 段原样", async () => {
 	const pb = createPromptbook(tempPack());
 	const handler = createAssembleHandler({ pb, isHosted, systemKey: K });
-	const out = await handler(baseAssembly(), contextWith("mimo-v2.6-pro"), nextPassing(baseAssembly()));
-	assert.deepEqual(out.sections, [{ name: "promptbook", order: 0, text: "FALLBACK" }]);
+	const before = baseAssembly();
+	const out = await handler(before, contextWith("mimo-v2.6-pro"), nextPassing(before));
+	assert.deepEqual(out.sections, before.sections, "未命中 → 透传官方 persona");
 });
 
 await scenario("6 systemKey 未注册（resolve=undefined）→ system 段不动（无兜底可换）", async () => {
@@ -124,7 +125,7 @@ await scenario("8 resolveSystem：hosted 返回解析文本；非 hosted 与未�
 	const pb = createPromptbook(tempPack({ layers: { "mimo-v2.6-flash": { [K]: "Flash 人设" } } }));
 	const source = createPromptSource({ pb, isHosted, systemKey: K });
 	assert.equal(source.resolveSystem({ provider: "mimo", model: "mimo-v2.6-flash", system: "原" }), "Flash 人设");
-	assert.equal(source.resolveSystem({ provider: "mimo", model: "mimo-v2.6-pro", system: "原" }), "FALLBACK");
+	assert.equal(source.resolveSystem({ provider: "mimo", model: "mimo-v2.6-pro", system: "原" }), undefined, "无本地化命中 → 不改（透传）");
 	assert.equal(source.resolveSystem({ provider: "deepseek-official", model: "deepseek-flash", system: "原" }), undefined);
 });
 

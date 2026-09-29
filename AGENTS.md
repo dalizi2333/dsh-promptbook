@@ -35,6 +35,7 @@ fallback 必填（该键的兜底文本）；写透 `registry.json` 并镜像 `C
 - **合法模型世界 = `ctx.llmMimo.listHostedModels()`**（本插件硬依赖 dsh-llm-mimo）。名单外模型（llm-deepseek / llm-pi-ai 路由）**结构性不可达**：不列出、不解析、不注入。
 - **模型源 = pending route = `assembly.variables.model`**（框架注入装配输入；D18 实证：首个 request/header 在 dispatch 期才落盘，首装配时 `session.requestHeader()` 恒空，不可作主源）。**禁止**读 `agent.options` 创建快照（R5 教训）。
 - 主通道：`ctx.on("system-prompt/assemble", …)` 装配瀑布（返回值权威，GUI 轨迹面板可见）；工具描述改写同层。
+- **接管条件 = `resolveOverride` 本地化命中（D20 透传语义）**：entriesJson/overrides 文件/models 层（含 entries.default）命中才替换；**无命中一律透传官方 persona/工具描述**——registry.fallback 不触发接管（仅服务面 `resolve` 与卡内展示使用）。包内种子 `models/mimo.json` = mimo 家族 Coding Agent 人设，装上即生效，删即回落透传。
 - 兜底：`ctx.llmMimo.registerPromptSource({ resolveSystem, resolveToolDescription })`——只在 llm-mimo dispatch 内被问询。
 - 只改文本，**不碰 tool 的 `name`/`parameters`**（历史 tool_use 块以名为关联键）。
 

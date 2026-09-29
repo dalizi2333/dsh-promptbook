@@ -3,7 +3,7 @@
 给 AI 代理/消费方看的接口契约与仓库纪律。修改本插件前先读
 `log/promptbook-plugin/README.md`（设计权威）与 `log/promptbook-plugin/decisions.md`（D1–D11）。
 
-**当前状态：S2 完成（resolve 数据面 + 注入两通道已生效，真机双标记实证）**——client 卡（标注「S3 起」）尚未实现。
+**当前状态：S3 逻辑层完成（卡已落码，逻辑单测+静态断言全绿；渲染层待视觉验收）**。
 
 ## 一、promptbook 服务（**S1 起生效**）
 

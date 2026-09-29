@@ -73,10 +73,14 @@ else {
 listeners.some((l) => l.type === "system-prompt/assemble" && l.opts?.global) ? ok('装配瀑布监听已注册（global）') : bad("缺 system-prompt/assemble 监听");
 sources.length === 1 ? ok("llmMimo.registerPromptSource 兜底已注册") : bad(`registerPromptSource 调用 ${sources.length} 次（应为 1）`);
 
-console.log("[3/4] client 桩静态形状");
+console.log("[3/4] client 卡静态形状（S3）");
 const client = readFileSync(join(root, "lib/client.js"), "utf8");
 client.includes("window.__ModuleLoader__.load") ? ok("ModuleLoader 装载形态") : bad("缺 ModuleLoader 装载");
 client.includes('"@mimo-codex/dsh-promptbook"') ? ok("装载 id = 包名") : bad("装载 id 不是包名");
+client.includes('ctx.slots.inject("plugins.item"') ? ok("plugins.item 插槽注册") : bad("缺 plugins.item 注册");
+client.includes('id: "promptbook"') ? ok("插槽条目 id = promptbook") : bad("插槽条目 id 不对");
+client.includes('"settings.promptbook"') ? ok("词典/命名空间 NS") : bad("缺 NS settings.promptbook");
+client.includes("whileServed([PB_NS]") ? ok("whileServed 门控") : bad("缺 whileServed 门控");
 
 console.log("[4/4] cordis.patch.yml 自挂载条目");
 const patch = readFileSync(join(root, "cordis.patch.yml"), "utf8");

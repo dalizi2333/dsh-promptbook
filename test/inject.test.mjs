@@ -8,7 +8,7 @@
 import { strict as assert } from "node:assert";
 import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { createPromptbook, createAssembleHandler, createPromptSource, pendingModelOf } from "../lib/index.js";
+import { createPromptbook, createAssembleHandler, createPromptSource, pendingModelOf, mirrorSeedKeys } from "../lib/index.js";
 
 let passed = 0;
 const scenario = async (n, fn) => {
@@ -140,4 +140,18 @@ await scenario("9 resolveToolDescription：命中改写、未命中/非 hosted �
 	assert.equal(source.resolveToolDescription({ provider: "x", model: "deepseek-flash", toolName: "bash", description: "官方" }), undefined);
 });
 
-console.log(passed === 9 ? "\nPASS：9/9 场景全绿" : `\nFAIL：${9 - passed} 项未过`);
+
+await scenario("10 mirrorSeedKeys：种子键镜像进 config.registryJson，幂等不重写", () => {
+	const p = tempPack({ registry: { "tool.x": { label: "新工具", fallback: "T" } } });
+	const pb = createPromptbook(p);
+	const config = {};
+	mirrorSeedKeys(pb, config);
+	const first = JSON.parse(config.registryJson);
+	assert.ok(first[K] && first["tool.x"], "种子键已镜像");
+	const snapshot = JSON.stringify(first);
+	mirrorSeedKeys(pb, config);
+	assert.equal(config.registryJson, snapshot, "幂等：无缺键不重写");
+	mirrorSeedKeys(pb, undefined); // config 缺省不炸
+});
+
+console.log(passed === 10 ? "\nPASS：10/10 场景全绿" : `\nFAIL：${10 - passed} 项未过`);

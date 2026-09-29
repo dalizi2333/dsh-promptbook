@@ -14,11 +14,15 @@
 
 **作用域**：合法模型世界 = `llmMimo.listHostedModels()`（本插件硬依赖 [dsh-llm-mimo](https://github.com/dalizi2333/dsh-llm-mimo)）。走 llm-deepseek / llm-pi-ai 的模型不在名单内——不列出、不解析、不注入。
 
-## 安装（实例侧三步）
+## 安装
 
-1. 本仓镜像放入 profile 的 `packages/dsh-promptbook/`；
-2. profile `package.json`：`dependencies` 加 `"@mimo-codex/dsh-promptbook": "link:./packages/dsh-promptbook"`，`dsh.profile.bundles` 追加 `"@mimo-codex/dsh-promptbook"`；
-3. profile `cordis.patch.yml`：添加条目 `- id: promptbook` / `name: "@mimo-codex/dsh-promptbook"`（配置随用随加）。
+一条命令（DSH ≥ 0.2.0-rc.1）：
+
+```sh
+dsh plugin --profile <name> add github:dalizi2333/dsh-promptbook
+```
+
+卸载：`dsh plugin --profile <name> remove @mimo-codex/dsh-promptbook`。发布 npm 后同样支持包名安装（`add @mimo-codex/dsh-promptbook`）。
 
 ## 开发
 

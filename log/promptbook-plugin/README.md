@@ -106,7 +106,7 @@ dsh --profile <profile> --dump-config | grep -A2 promptbook    # 组合树断言
 | 阶梯 | 内容 | 完成判据 |
 | --- | --- | --- |
 | S0 ✅ | 可安装性骨架：package.json / lib 入口（host 桩 + client 桩）/ cordis.patch.yml + 根 README / AGENTS.md / LICENSE；装入 core-headless 验证 | ✅ 模块级 apply() 提供 promptbook 服务桩；`--dump-config` 组合树含条目（exit 0）；headless 一次性任务全通（会话 1162af07，速度指纹名义=自报=mimo-v2.6-flash @ 48 tok/s ✓） |
-| S1 | resolve 链移植 + Config 配置面 + 逻辑单测 | 10 场景测试全绿 |
+| S1 ✅ | resolve 链移植 + Config 配置面 + 逻辑单测 | **13/13 场景全绿**（`npm test`，已并入 `npm run ci` 门）；实现 = createPromptbook 工厂（临时资源包注入式测试），asDoc $ 前缀过滤两路径统一 |
 | S2 | 注入两通道（assemble 瀑布主 + registerPromptSource 兜底）+ `inject:["llmMimo"]` + pending route 模型源 | §3.6 headless 冒烟全绿（含非 hosted 透传） |
 | S3 | client 卡（plugins.item + ConfigForm），逻辑/渲染分离 | 卡逻辑单测 + 静态断言全绿；**渲染层视觉验收移交**（截图：卡渲染、二级下拉=托管名单、逐键编辑、保存往返） |
 | S4 | 装入 020 core-web + 端到端验收 | ①首条即对 ②不串会话 ③家族正确 ④基线不回归；对账 = speedprint 三重指纹 + 轨迹 system/message 程序化对账；卡的视觉残留同 S3 移交 |

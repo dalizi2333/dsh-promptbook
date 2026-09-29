@@ -53,6 +53,10 @@ if (!existsSync(join(root, "node_modules", "@deepseek-ai", "schemastery"))) {
 console.log("▶ verify-install");
 run("node", [join(root, "scripts", "verify-install.mjs")]);
 
+// --- 3. resolve 链逻辑测试 ---
+console.log("▶ test（resolve 链 13 场景）");
+run("npm", ["test", "--silent"], { cwd: root });
+
 // --- 3. 干净 DSH_HOME 组合级 ---
 const home = mkdtempSync(join(process.env.TMPDIR ?? "/tmp", "dsh-promptbook-ci-"));
 console.log(`▶ 临时 DSH_HOME：${home}`);

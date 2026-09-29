@@ -3,21 +3,32 @@
 给 AI 代理/消费方看的接口契约与仓库纪律。修改本插件前先读
 `log/promptbook-plugin/README.md`（设计权威）与 `log/promptbook-plugin/decisions.md`（D1–D11）。
 
-**当前状态：S0（可安装性骨架）**——服务为占位实现，下列标注「S1 起」「S2 起」的接口尚未生效。
+**当前状态：S1 完成（resolve 数据面已生效）**——注入通道（标注「S2 起」）尚未生效。
 
-## 一、promptbook 服务（S1 起生效）
+## 一、promptbook 服务（**S1 起生效**）
 
 `ctx.provide("promptbook", api)`，消费方 `inject: ["promptbook"]` 后经 `ctx.promptbook` 访问。
 
 ### `listKeys(): Array<{ key, label, fallback }>`
-枚举已注册键（键由插件注册方声明，**必须携带默认值**）。
+枚举已注册键（键由插件注册方声明，**必须携带默认值**）。另有 `keys()`（仅键名）与
+`definition(key)`（单键定义）。
 
 ### `resolve(key, model): string | undefined`
-按「模型 → 供应商 → 默认」分层解析键文本；全链未命中返回 `undefined`（消费方自行决定兜底）。
+按「模型 → 供应商（家族）→ 默认」分层解析键文本。完整层序（高 → 低）：
+`Config.entriesJson`（GUI，逐模型）→ overrides 文件（编译 `set()` 落点，逐模型）
+→ `models/<模型>.json` → `models/<家族…>.json`（模型 id 逐级剥 `-tier`）
+→ entries 的 `default` 键 → `registry.fallback`。键未注册返回 `undefined`。
+
+### `register(key, { label, fallback }): void`（消费方激活时调用）
+fallback 必填（该键的兜底文本）；写透 `registry.json` 并镜像 `Config.registryJson`。
+
+### `set(key, model, text, compiled?): void`（编译器落点）
+写 overrides 文档；**需要 `Config.overrides` 已配置**，编译永不写发布层（models/）。
 
 **契约**：
 1. `resolve` 必须是 `(key, model)` 的**确定性纯函数**（逐字节稳定）——系统提示词位于请求前缀，抖动即缓存全量 miss；切模型场景的缓存失效属预期，由 harness 的 in-history 重建机制顺势处理。
 2. 解析结果只依赖资源包分层与配置，**不读会话状态、不读时钟**。
+3. 服务无状态、零 JS 私有成员（cordis 派生对象纪律）；文档每次 call 现读。
 
 ## 二、注入契约（S2 起生效）
 
@@ -27,9 +38,15 @@
 - 兜底：`ctx.llmMimo.registerPromptSource({ resolveSystem, resolveToolDescription })`——只在 llm-mimo dispatch 内被问询。
 - 只改文本，**不碰 tool 的 `name`/`parameters`**（历史 tool_use 块以名为关联键）。
 
-## 三、配置面（S1 起定义）
+## 三、配置面（S1 起生效）
 
-cordis.patch.yml 顶层 `promptbook` 行承载资源包分层配置（registry / 默认层 / 家族层 / 模型层 / GUI entriesJson / 编译 overrides）。字段以 S1 实现为准，届时回填本节。
+cordis.patch.yml 顶层 `promptbook` 行（全部 volatile 字符串，双形态兼容——活引用/物化对象/JSON 文本）：
+
+| 字段 | 说明 |
+|---|---|
+| `registryJson` | 注册表扩展 JSON 文本 `{key: {label, fallback}}`（GUI 键清单也从这里合成） |
+| `entriesJson` | GUI 编辑的逐模型文本 `{key: {model: text}}`（用户层最高） |
+| `overrides` | 编译产物文档路径（`set()` 落点；低于 entriesJson） |
 
 ## 四、仓库纪律
 

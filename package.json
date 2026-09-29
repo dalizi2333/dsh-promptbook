@@ -15,6 +15,8 @@
 	},
 	"files": [
 		"lib",
+		"models",
+		"registry.json",
 		"cordis.patch.yml",
 		"README.md",
 		"AGENTS.md",
@@ -27,7 +29,8 @@
 	},
 	"scripts": {
 		"verify:install": "node scripts/verify-install.mjs",
-		"ci": "node scripts/ci.mjs"
+		"ci": "node scripts/ci.mjs",
+		"test": "node test/promptbook.test.mjs"
 	},
 	"dependencies": {
 		"@deepseek-ai/schemastery": "~3.18.4"

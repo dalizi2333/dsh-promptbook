@@ -4,7 +4,17 @@ name: CI
 
 on:
   push:
+    paths-ignore:
+      - "README.md"
+      - "AGENTS.md"
+      - "LICENSE"
+      - "log/**"
   pull_request:
+    paths-ignore:
+      - "README.md"
+      - "AGENTS.md"
+      - "LICENSE"
+      - "log/**"
 
 jobs:
   installability:

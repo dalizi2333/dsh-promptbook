@@ -9,7 +9,7 @@
 >
 > **本目录是本计划的唯一事实来源。** `progress.md` 记实时进度，`decisions.md` 记取舍理由。
 > **接手方开工前必须先读 `handover.md`**（接手入口），收工后必须回写 `progress.md`。
-> **状态：✅ S0 完成（可安装性骨架 + 根文档，core-headless 实装验证通过）；S1 未开工。未 commit。**
+> **状态：✅ S0–S4 全部完成（2026-09-30 收官；基线 0.2.0-rc.2）。剩余 = 发布前事项（GUI 美化 / npm 发布 / 默认接管语义 / 种子内容），见 handover §4。**
 > **本仓将推送远程**（GitHub dalizi2333/dsh-promptbook）；已提交文档**不携带本机绝对路径**，本机路径统一在 `local-env.md`（git-ignore，不入库）。
 
 ## 0. 目录约定
@@ -109,8 +109,8 @@ dsh --profile <profile> --dump-config | grep -A2 promptbook    # 组合树断言
 | S0 ✅ | 可安装性骨架：package.json / lib 入口（host 桩 + client 桩）/ cordis.patch.yml + 根 README / AGENTS.md / LICENSE；装入 core-headless 验证 | ✅ 模块级 apply() 提供 promptbook 服务桩；`--dump-config` 组合树含条目（exit 0）；headless 一次性任务全通（会话 1162af07，速度指纹名义=自报=mimo-v2.6-flash @ 48 tok/s ✓） |
 | S1 ✅ | resolve 链移植 + Config 配置面 + 逻辑单测 | **13/13 场景全绿**（`npm test`，已并入 `npm run ci` 门）；实现 = createPromptbook 工厂（临时资源包注入式测试），asDoc $ 前缀过滤两路径统一 |
 | S2 ✅ | 注入两通道（assemble 瀑布主 + registerPromptSource 兜底）+ `inject:["llmMimo"]` + pending route 模型源 | 9/9 注入单测 + verify-install 两通道断言 + **真机双标记实证**（新会话首条 system/message 与 request/header tools[].description 均为 promptbook 层文本；模型源 = assembly.variables.model，D18） |
-| S3 🟦 | client 卡（plugins.item + ConfigForm），逻辑/渲染分离 | **逻辑/静态全绿**（7/7 + 10/10 + 13/13 + 4 项静态断言）；渲染层视觉验收移交（截图清单见 progress S3 行） |
-| S4 | 装入 020 core-web + 端到端验收 | ①首条即对 ②不串会话 ③家族正确 ④基线不回归；对账 = speedprint 三重指纹 + 轨迹 system/message 程序化对账；卡的视觉残留同 S3 移交 |
+| S3 ✅ | client 卡（plugins.item + ConfigForm），逻辑/渲染分离 | 逻辑/静态全绿 + **视觉验收过**（GUI 会话，观感美化另排）；其 API 修复已落账 |
+| S4 ✅ | 装入 020rc2 core-web + 端到端验收 | 三会话证据：卡保存覆盖→新会话首条注入 ✓、非 hosted（deepseek-flash）透传 ✓、rc.2 双标记 ✓；speedprint 三证 ✓；volatile 物化实测 = 规范 JSON 字符串 |
 
 speedprint（测速指纹工具，位于 dsh-tool-lab，本机路径见 local-env.md）：`node speedprint.mjs <会话目录或文件> [--summary|--json]`——逐请求 ttft/生成时长/tok/s/速度档/adapter 自报模型；名义≠自报或速度档错配即标 ✗。
 

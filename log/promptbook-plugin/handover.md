@@ -5,14 +5,14 @@
 
 > **本文件是接手入口。** 接手方请**先读完本文件**，再按 §1 指路读计划全文，然后从 §5 开工。
 > 本文件不预设接手方已知任何背景。
-> **当前状态：✅ S0–S3（逻辑层）+ 基线 rc.2 迁移（D19）全部完成；剩两件：①渲染层视觉验收（S3 残余）②S4 core-web 端到端。仓库 `dalizi2333/dsh-promptbook` 全绿（pre-push 门强制本地 CI）。**
+> **当前状态：✅ S0–S4 全部完成（2026-09-30：渲染层视觉验收 7 条清单全过 + core-web 端到端注入链/透传/speedprint 全过；过程中修掉 3 个真 bug，见 progress 09-30 行）。仓库改动待 owner 审后 commit/push（`npm run ci` 本地全链已绿）。**
 
 ## §0 一句话任务
 
 插件本体已完成并真机验证（R5 修复闭环：新会话首条消息即带正确人设，rc.2 双标记复测全过）。
-**剩余任务两件**：
-1. **渲染层视觉验收**（S3 残余，需有视觉能力的模型/owner）：截图核对设置→插件→提示词簿卡；
-2. **S4 core-web 端到端**：装入 020rc2 的 core-web profile，真发会话按 §4 判据验收。
+**剩余任务两件已于 2026-09-30 由视觉会话完成**：
+1. **渲染层视觉验收**：§4-1 七条清单在 core-web GUI 实测全过（含截图与磁盘落盘核验）；
+2. **S4 core-web 端到端**：官方 plugin add 装入 core-web，注入链（轨迹 GUI + session.v4 文件 system/message 逐字节对账）+ speedprint 三证 + 非托管 DeepSeek 透传抽查全过。
 
 **基线 = 0.2.0-rc.2 / 实例 mimo-codex-020rc2**（D19；llm-mimo v0.3.0 主路由已切 OpenAI Chat Completions）。
 

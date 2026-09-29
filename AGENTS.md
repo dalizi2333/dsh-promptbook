@@ -3,7 +3,7 @@
 给 AI 代理/消费方看的接口契约与仓库纪律。修改本插件前先读
 `log/promptbook-plugin/README.md`（设计权威）与 `log/promptbook-plugin/decisions.md`（D1–D11）。
 
-**当前状态：S3 逻辑层完成（卡已落码，逻辑单测+静态断言全绿；渲染层待视觉验收）**。
+**当前状态：S0–S4 完成（含 GUI 视觉验收；发布前剩 GUI 美化、npm 发布、默认接管语义定夺——见 log/promptbook-plugin/handover.md §4）。**
 
 ## 一、promptbook 服务（**S1 起生效**）
 

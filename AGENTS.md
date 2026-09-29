@@ -3,7 +3,7 @@
 给 AI 代理/消费方看的接口契约与仓库纪律。修改本插件前先读
 `log/promptbook-plugin/README.md`（设计权威）与 `log/promptbook-plugin/decisions.md`（D1–D11）。
 
-**当前状态：S1 完成（resolve 数据面已生效）**——注入通道（标注「S2 起」）尚未生效。
+**当前状态：S2 完成（resolve 数据面 + 注入两通道已生效，真机双标记实证）**——client 卡（标注「S3 起」）尚未实现。
 
 ## 一、promptbook 服务（**S1 起生效**）
 
@@ -30,10 +30,10 @@ fallback 必填（该键的兜底文本）；写透 `registry.json` 并镜像 `C
 2. 解析结果只依赖资源包分层与配置，**不读会话状态、不读时钟**。
 3. 服务无状态、零 JS 私有成员（cordis 派生对象纪律）；文档每次 call 现读。
 
-## 二、注入契约（S2 起生效）
+## 二、注入契约（**S2 起生效**）
 
 - **合法模型世界 = `ctx.llmMimo.listHostedModels()`**（本插件硬依赖 dsh-llm-mimo）。名单外模型（llm-deepseek / llm-pi-ai 路由）**结构性不可达**：不列出、不解析、不注入。
-- **模型源 = pending route**（`session.requestHeader()`，即 `model/selection` 之后、下一请求将用的头）。**禁止**读 `agent.options` 创建快照（R5 教训：首条错配人设的实测根因）。
+- **模型源 = pending route = `assembly.variables.model`**（框架注入装配输入；D18 实证：首个 request/header 在 dispatch 期才落盘，首装配时 `session.requestHeader()` 恒空，不可作主源）。**禁止**读 `agent.options` 创建快照（R5 教训）。
 - 主通道：`ctx.on("system-prompt/assemble", …)` 装配瀑布（返回值权威，GUI 轨迹面板可见）；工具描述改写同层。
 - 兜底：`ctx.llmMimo.registerPromptSource({ resolveSystem, resolveToolDescription })`——只在 llm-mimo dispatch 内被问询。
 - 只改文本，**不碰 tool 的 `name`/`parameters`**（历史 tool_use 块以名为关联键）。

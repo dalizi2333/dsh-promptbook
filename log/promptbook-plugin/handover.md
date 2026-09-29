@@ -5,7 +5,7 @@
 
 > **本文件是接手入口。** 接手方请**先读完本文件**，再按 §1 指路读计划全文，然后从 §5 开工。
 > 本文件不预设接手方已知任何背景。
-> **当前状态：✅ S0 + S1 完成（可安装性 + resolve 数据面 13/13 绿）；S2 未开工。仓库已推 `dalizi2333/dsh-promptbook`（CI 全绿，pre-push 门已启用）。**
+> **当前状态：✅ S0 + S1 + S2 完成（注入两通道真机双标记实证，R5 修复闭环）；S3 client 卡未开工。仓库已推 `dalizi2333/dsh-promptbook`（CI 全绿，pre-push 门已启用）。**
 
 ## §0 一句话任务
 
@@ -54,7 +54,7 @@ persona=消费方）的人设在装配期冻结、模型源用了 `agent.options
 
 - 单插件三面孔：注入（assemble 瀑布主通道 + `registerPromptSource` 兜底）／编辑（`plugins.item` 卡 + ConfigForm）／服务（`provide("promptbook")`）。
 - 插件级依赖 dsh-llm-mimo；**合法模型世界 = `llmMimo.listHostedModels()`**（下拉/resolve/注入判定三处同源；名单外结构性不可达；无事件监听、无动态注册/注销）。
-- 模型源 = **`session.requestHeader()`**（pending route）；**禁止** `agent.options` 快照（llm-mimo AGENTS.md 契约原文即 R5 教训）。
+- 模型源 = **`assembly.variables.model`**（装配输入携带的 pending route，D18；requestHeader 首装配恒空已实证）——**禁止** `agent.options` 快照，也别照抄 llm-mimo AGENTS 里的 requestHeader 建议（该建议在装配场景不成立）。
 - resolve 链语义不变：registry → default → 家族 → 模型 → GUI entriesJson → overrides；volatile 物化坑在新基线重验。
 - GUI 插槽用 **`plugins.item`**（设置→插件→本插件卡）；llm-mimo 用的 `settings.models.*` 是模型页专属，**用不了**。
 - **程序化检验优先**（README §3.6）：除卡的纯渲染层外全部可自动验证——resolve 单测、headless cordis 注入冒烟、卡逻辑层单测（逻辑/渲染分离）、配置往返、端到端轨迹对账；视觉验收只覆盖渲染残余。

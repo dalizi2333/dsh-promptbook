@@ -43,8 +43,26 @@ const mod = await import(pathToFileURL(join(root, "lib/index.js")).href);
 for (const key of ["name", "inject", "Config", "apply"]) {
 	typeof mod[key] === "undefined" ? bad(`缺少导出 ${key}`) : ok(`导出 ${key}`);
 }
+(mod.inject ?? []).includes("llmMimo") ? ok('inject 含 "llmMimo"（插件级依赖）') : bad('inject 缺 "llmMimo"');
 const provided = {};
-await mod.apply({ provide: (n, s) => (provided[n] = s), logger: { info: () => {} } });
+const listeners = [];
+const sources = [];
+const disposeAll = [];
+await mod.apply({
+	provide: (n, s) => (provided[n] = s),
+	logger: { info: () => {} },
+	on: (type, listener, opts) => {
+		listeners.push({ type, listener, opts });
+		return () => {};
+	},
+	llmMimo: {
+		listHostedModels: () => [],
+		registerPromptSource: (source) => {
+			sources.push(source);
+			return () => {};
+		}
+	}
+});
 if (!provided.promptbook) bad("apply() 未提供 promptbook 服务");
 else {
 	for (const fn of ["listKeys", "resolve"]) {
@@ -52,6 +70,8 @@ else {
 	}
 	ok("apply() 提供 promptbook 服务");
 }
+listeners.some((l) => l.type === "system-prompt/assemble" && l.opts?.global) ? ok('装配瀑布监听已注册（global）') : bad("缺 system-prompt/assemble 监听");
+sources.length === 1 ? ok("llmMimo.registerPromptSource 兜底已注册") : bad(`registerPromptSource 调用 ${sources.length} 次（应为 1）`);
 
 console.log("[3/4] client 桩静态形状");
 const client = readFileSync(join(root, "lib/client.js"), "utf8");

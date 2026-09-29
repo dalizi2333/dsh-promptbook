@@ -30,7 +30,7 @@
 	"scripts": {
 		"verify:install": "node scripts/verify-install.mjs",
 		"ci": "node scripts/ci.mjs",
-		"test": "node test/promptbook.test.mjs"
+		"test": "node test/promptbook.test.mjs && node test/inject.test.mjs"
 	},
 	"dependencies": {
 		"@deepseek-ai/schemastery": "~3.18.4"

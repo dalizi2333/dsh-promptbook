@@ -32,8 +32,8 @@ jobs:
       - name: 安装 pnpm
         run: npm install -g pnpm@11
 
-      - name: 安装基线 CLI（钉死 0.2.0-rc.1，npm 上已有 rc.2，防漂移）
-        run: npm install -g @deepseek-ai/dsh@0.2.0-rc.1
+      - name: 安装基线 CLI（钉死 0.2.0-rc.2（基线随 owner 决策迁移））
+        run: npm install -g @deepseek-ai/dsh@0.2.0-rc.2
 
       - name: 全链可安装性门（与本地 npm run ci 同一脚本）
         run: npm run ci

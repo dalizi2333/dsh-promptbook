@@ -5,13 +5,16 @@
 
 > **本文件是接手入口。** 接手方请**先读完本文件**，再按 §1 指路读计划全文，然后从 §5 开工。
 > 本文件不预设接手方已知任何背景。
-> **当前状态：✅ S0 + S1 + S2 完成（注入两通道真机双标记实证，R5 修复闭环）；S3 client 卡未开工。仓库已推 `dalizi2333/dsh-promptbook`（CI 全绿，pre-push 门已启用）。**
+> **当前状态：✅ S0–S3（逻辑层）+ 基线 rc.2 迁移（D19）全部完成；剩两件：①渲染层视觉验收（S3 残余）②S4 core-web 端到端。仓库 `dalizi2333/dsh-promptbook` 全绿（pre-push 门强制本地 CI）。**
 
 ## §0 一句话任务
 
-在 **0.2.0-rc.1 基线**（实例 mimo-codex-020）上新建单插件 **`@mimo-codex/dsh-promptbook`**：
-按模型本地化系统提示词与工具描述（**只对 llm-mimo 托管的模型生效**），GUI 卡可编辑，
-以此修复 R5——人设必须从**会话第一条消息起**跟随**实际路由的模型**，不串会话、无滞后窗口。
+插件本体已完成并真机验证（R5 修复闭环：新会话首条消息即带正确人设，rc.2 双标记复测全过）。
+**剩余任务两件**：
+1. **渲染层视觉验收**（S3 残余，需有视觉能力的模型/owner）：截图核对设置→插件→提示词簿卡；
+2. **S4 core-web 端到端**：装入 020rc2 的 core-web profile，真发会话按 §4 判据验收。
+
+**基线 = 0.2.0-rc.2 / 实例 mimo-codex-020rc2**（D19；llm-mimo v0.3.0 主路由已切 OpenAI Chat Completions）。
 
 **与旧实现的关键差别**（为什么是重写不是搬运）：旧双插件（promptbook=服务+卡、
 persona=消费方）的人设在装配期冻结、模型源用了 `agent.options` 创建快照，导致
@@ -37,10 +40,9 @@ persona=消费方）的人设在装配期冻结、模型源用了 `agent.options
 | llm-mimo 接口契约（**必读**） | 该仓 `AGENTS.md`（llmMimo 服务、registerPromptSource、装配层关系、R5 契约条款） |
 | llm-mimo 冒烟实证 | 该仓 `HANDOFF.md` 〇-附4（systemPrompt.section GUI 可见性 + assemble 瀑布） |
 
-**本机才有（路径见 local-env.md）**：020 实例 core-web profile（安装目标）、0.2.0-rc.1 运行时
-（`dsh-system-prompt`/`dsh-session`/`dsh-client-ui-*` 类型源）、待移植的旧 resolve 链与卡源码、
-旧排障 HANDOFF、speedprint 工具、测速校准样本、GUI 卡官方先例（web-search client.js 的
-`plugins.item` + `configForms.whileServed` 样板）。
+**本机才有（路径见 local-env.md）**：020rc2 实例（core-web 待装入 = S4；core-headless 已装且
+**symlink 直链本仓**——packages/dsh-promptbook 就是仓库本体，改仓即改实例）、0.2.0-rc.2 运行时、
+speedprint 工具、测速校准样本、GUI 卡官方先例（web-search client.js 的 plugins.item 样板）。
 
 ## §2 必须带走的实测结论（全部有证据，别重推导）
 
@@ -61,16 +63,19 @@ persona=消费方）的人设在装配期冻结、模型源用了 `agent.options
 
 ## §4 已做 / 未做
 
-**已做（S0 ✅，2026-09-29）**：可安装性骨架全落——根六件（package.json @0.1.0、lib/index.js 服务桩、lib/client.js 桩、cordis.patch.yml 自挂载条目、README、AGENTS、LICENSE）；已装入 020 **core-headless**（双副本 + 依赖闭包 + profile 接线）并验证：模块级 apply() ✓、`--dump-config` 组合树含条目 ✓、headless 一次性任务全通（会话 1162af07，指纹三证 ✓）。仓库尚**未 commit**（待 owner；远程仓未建）。
+**已做（全部实证）**：S0 可安装性（CI 第一门 + pre-push 强制）；S1 resolve 数据面（13 场景）；S2 注入两通道（assemble 瀑布主 + registerPromptSource 兜底，模型源 = `assembly.variables.model`，**D18：requestHeader 首装配恒空勿用**；真机双标记：新会话首条 system/message 与 request/header tools[].description 均为 promptbook 层文本）；S3 逻辑层（卡全码：plugins.item 插槽 + ConfigForm 分阶段原子保存 + llm-mimo 命名空间派生二级下拉 + host mirrorSeedKeys；7+10+13 三套单测与 4 项静态断言全绿）；基线迁 rc.2（D19，双标记复测全过）。
 
-**未做**：S1 resolve 链移植 + Config + 单测 → S2 注入两通道（`inject:["llmMimo"]` 在此加）→ S3 client 卡（逻辑单测自动验，渲染层视觉移交）→ S4 装入 core-web 端到端验收。
+**未做**：
+1. **渲染层视觉验收**——清单：①设置→插件→出现"提示词簿"卡 ②供应商/模型二级下拉=llm-mimo 托管面（含 customProviders 显示名）③键下拉含种子键、选键+模型出文本域 ④"保存该模型的覆盖"往返成功 ⑤已覆盖徽标 + "清除该覆盖" ⑥systemKey/overrides 字段覆盖/重置 ⑦llm-mimo 停用时降级提示。
+2. **S4 core-web 端到端**：core-web profile `dsh plugin add` 本仓 → web 会话验证 GUI 卡（视觉）+ 注入链（新会话首条 system/message 对账 + speedprint 三重指纹）+ 非 hosted 模型透传抽查。
 
-## §5 开工顺序（S1 起）
+## §5 开工顺序（S4 起）
 
-1. S1：Config 配置面（资源包分层字段）+ 从旧基线移植 resolve 链 + 10 场景逻辑测试（node 直跑）；volatile 双形态兼容先保留、重验后删。
-2. S2：`inject: ["llmMimo"]`；`ctx.on("system-prompt/assemble", …)` 内查名单 + 读 pending route + resolve → 替换 system 段/改 tools 描述；同逻辑挂 `registerPromptSource` 兜底；**headless cordis 冒烟**（mock llmMimo/session，断言 hosted 替换、非 hosted 透传）。
-3. S3 卡：照 web-search 样板 `plugins.item` + `configForms.whileServed([NS])`；**数据/状态逻辑与 JSX 分离进单测**；渲染层截图验收交有视觉的模型/owner。
-4. S4 装入 core-web（README §3.5 配方；评估 `dsh plugin add` 官方命令）+ 端到端对账（speedprint + 轨迹 system/message）。
+1. `dsh plugin --profile core-web add <本仓>`（DSH_HOME 指 020rc2；symlink 直链，改仓即生效）。
+2. 起 core-web（HDSL 或手动），浏览器截图过 §4-1 清单（视觉模型/owner 执行）。
+3. 卡内编辑一条 mimo 覆盖 → 新会话首条消息 → 轨迹 system/message 对账（家族正确性 = 所编辑文本）；切非托管模型会话抽查透传。
+4. speedprint（local-env 有路径）跑该会话：名义=自报=速度档三证一致。
+5. 全绿后：handover 状态行 + progress 收官行，commit（`npm run ci` 门会先跑）。
 
 ## §6 红线
 

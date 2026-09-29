@@ -6,7 +6,7 @@
 | # | 决策 | 理由 | 被否决方案 |
 | --- | --- | --- | --- |
 | D1 | **单插件合并**：persona 职能吸收进 promptbook，persona 插件/仓库不再出生 | owner 原则：不做纯依赖库型插件，插件必须自带功能面；卡上编辑的就是注入的，单一事实源 | 双插件拆分（promptbook=服务+卡、persona=消费方）——persona 沦为无独立价值的薄壳，且两仓版本偏斜 |
-| D2 | **基线 = 0.2.0-rc.1 / 实例 mimo-codex-020** | owner 决策：DSH 更新频繁 + 桌面版存在，基线必须钉死 | 继续在 17a2 / 0.1.7-alpha.2 上修——装配 API 已换代，旧缝的修复对新基线无意义 |
+| D2 | **基线 = 0.2.0-rc.1 / 实例 mimo-codex-020**（→ **D19 修正为 0.2.0-rc.2 / 实例 mimo-codex-020rc2**） | owner 决策：DSH 更新频繁 + 桌面版存在，基线必须钉死 | 继续在 17a2 / 0.1.7-alpha.2 上修——装配 API 已换代，旧缝的修复对新基线无意义 |
 | D3 | **一插件一小仓**（本仓即插件包根，照 dsh-llm-mimo 模板） | owner 决策；llm-mimo 已是跑通的模板（独立仓 + 实例内 link 镜像） | 所有实例共享 HDSL/data 大仓——实例间耦合、提交噪音大 |
 | D4 | **合法模型名单 = `llmMimo.listHostedModels()`，插件级依赖 llm-mimo** | 名单本身由 llm-mimo 提供：依赖保证 mimo 必在；llm-deepseek/llm-pi-ai 的模型结构性不在名单 → 不列、不解析、不注入 | ①监听 model/selection 动态注册/注销 section（owner 否决："不是检测"）②自带名单配置（与 llm-mimo 目录漂移） |
 | D5 | **模型源 = pending route**（~~`session.requestHeader()`~~ → **D18 修正为 `assembly.variables.model`**，requestHeader 降为后备） | 增量折叠 model/selection，语义即"下一个请求将用的头"；首条即对 | `agent.options` 创建快照——R5 首条错配的实测根因；llm-mimo AGENTS.md 已写契约禁止 |
@@ -23,3 +23,4 @@
 | D16 | **仅文档变更不触发 CI**（push/PR 均 `paths-ignore`: README.md / AGENTS.md / LICENSE / log/**）；文档改动攒批随功能提交一起推 | owner 指正：CI 是可安装性门，文档变更不影响装载，跑了没意义还刷记录 | 每次文档修订单独推——频繁触发无意义 CI |
 | D17 | **本地 CI = 同一份脚本双跑**（`scripts/ci.mjs`，`npm run ci`；workflow 只做环境安装后调用它）+ **pre-push 钩子强制本地全绿才 push**（`core.hooksPath=scripts/hooks`，本机一次性启用）；本地 dsh 经 PATH 或 `DSH_RUNTIME_BIN` 注入 | owner 要求"本地一路平推、检测全绿才 push"；DRY——本地与远程跑同一份门，不出现两套判定漂移；不用 act/Docker——容器里跑不出真机语义，脚本直跑真链路（彩排已证） | ①act 容器模拟——重且假 ②workflow 与本地脚本各写一份——必然漂移 |
 | D18 | **注入模型源 = `assembly.variables.model`**（框架 installModelSelection 注入装配输入的 pending route），requestHeader 链仅后备 | 真机插桩实证：首个 request/header 在 dispatch 期才落盘，**首装配时 requestHeader() 恒 null** → 用它必致首条透传（R5 复发）；而装配输入端 variables 已携带 {provider,model}（含 cwd），零滞后。llm-mimo AGENTS.md 中"requestHeader().config.model"的建议在装配场景不成立 | 沿用 llm-mimo AGENTS 的 requestHeader 建议——真机探针已证伪（标记层不生效→插桩→定位→修正→复测双标记全过） |
+| D19 | **基线迁 0.2.0-rc.2 / 实例 mimo-codex-020rc2**（owner 决策，DSH 官方正式发布后随 llm-mimo v0.3.0 一并迁移；rc.1 的 020 实例已退役备份） | S2.5 勘察证零漂移（六包接触面 0 字节差异）；迁移后 **rc.2 双标记真机复测全过**（system/message + tools[].description + 路由 mimo-v2.6-flash）；CI 钉版本与版本告警同步升 rc.2 | 留守 rc.1——官方发布后只会加速过时，且迁移成本实测≈0 |

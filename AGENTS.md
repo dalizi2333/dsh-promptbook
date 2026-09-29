@@ -50,7 +50,7 @@ cordis.patch.yml 顶层 `promptbook` 行（全部 volatile 字符串，双形态
 
 ## 四、仓库纪律
 
-- **CI 第一道门 = 可安装性**（`.github/workflows/ci.yml`，push/PR 必跑）：`npm run verify:install`（模块+静态检查）+ 干净 runner 上官方 `dsh plugin add` + `--dump-config` 断言；CLI 钉 `@deepseek-ai/dsh@0.2.0-rc.1`。改动 package.json/入口/patch 后本地先跑 `npm run verify:install`。**仅文档变更（README/AGENTS/LICENSE/log/**）已被 paths-ignore 跳过，不触发 CI；文档改动攒批随下次功能提交一起推。**
+- **CI 第一道门 = 可安装性**（`.github/workflows/ci.yml`，push/PR 必跑）：`npm run verify:install`（模块+静态检查）+ 干净 runner 上官方 `dsh plugin add` + `--dump-config` 断言；CLI 钉 `@deepseek-ai/dsh@0.2.0-rc.2`（D2-amended，2026-09-29 随 llm-mimo v0.3.0 迁基线）。改动 package.json/入口/patch 后本地先跑 `npm run verify:install`。**仅文档变更（README/AGENTS/LICENSE/log/**）已被 paths-ignore 跳过，不触发 CI；文档改动攒批随下次功能提交一起推。**
 - **本地全绿才 push**：`npm run ci`（`scripts/ci.mjs`）与 GitHub Actions 跑**同一份脚本**；本机启用 `git config core.hooksPath scripts/hooks` 后 pre-push 钩子强制执行——钩子挡下的 push 就是还没绿的 push。本机 dsh 不在 PATH 时 `export DSH_RUNTIME_BIN=<运行时 dsh 路径>`（本机值见 local-env.md）。
 - **仓库必须自带 node_modules**（本机 `npm ci --legacy-peer-deps`）：pnpm link 安装后 DSH 引导经真实路径解析插件依赖——依赖装不全 = 别人的实例装不上你。
 - `log/promptbook-plugin/` 是计划的唯一事实来源（README=设计权威、handover=接手入口、progress=进度、decisions=决策）；收工必须回写 `progress.md`。

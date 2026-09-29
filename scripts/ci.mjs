@@ -8,7 +8,7 @@
  *      → --dump-config 断言 promptbook 条目。
  *
  * dsh 的来源：PATH 上的 `dsh`（CI 里全局安装；本地可 export DSH_RUNTIME_BIN 指向
- * 运行时的 dsh 可执行文件，见 local-env.md）。基线 0.2.0-rc.1：版本不符仅警告
+ * 运行时的 dsh 可执行文件，见 local-env.md）。基线 0.2.0-rc.2（D2-amended）：版本不符仅警告
  * （CI 由安装步骤钉死；本地提示人工确认）。
  *
  * 用法：npm run ci（或 scripts/hooks/pre-push 自动调用——push 前本地必绿）。
@@ -41,7 +41,7 @@ if (which.status !== 0) {
 }
 const ver = spawnSync(dshBin, ["--version"], { encoding: "utf8" });
 const dshVersion = (ver.stdout + ver.stderr).trim();
-if (!dshVersion.includes("0.2.0-rc.1")) console.warn(`warn：dsh 版本 ${dshVersion}，基线钉 0.2.0-rc.1（CI 会钉死安装，本地请自行确认）`);
+if (!dshVersion.includes("0.2.0-rc.2")) console.warn(`warn：dsh 版本 ${dshVersion}，基线钉 0.2.0-rc.2（D2-amended；CI 会钉死安装，本地请自行确认）`);
 
 // --- 1. 依赖 ---
 if (!existsSync(join(root, "node_modules", "@deepseek-ai", "schemastery"))) {

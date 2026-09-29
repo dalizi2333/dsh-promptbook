@@ -1,0 +1,6 @@
+# dsh-promptbook 自带 bundle patch:自挂载插件条目(照 dsh-llm-mimo 模式,
+# 设置→插件的开关控制整个 bundle)。资源包分层等配置由实例 profile patch 的
+# 顶层 promptbook 行覆盖(S1 起定义字段)。
+- insert:
+    - id: promptbook
+      name: '@mimo-codex/dsh-promptbook'

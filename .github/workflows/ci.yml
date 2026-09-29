@@ -1,5 +1,5 @@
 # CI —— 第一道门 = 可安装性（owner 定夺，decisions D13）。
-# 本链路已在本机完整彩排（progress.md S0.3），步骤顺序即彩排顺序，勿随意调换。
+# 实质步骤与本地 `npm run ci`（scripts/ci.mjs）同一份脚本：本地全绿才 push（pre-push 钩子强制）。
 name: CI
 
 on:
@@ -35,19 +35,5 @@ jobs:
       - name: 安装基线 CLI（钉死 0.2.0-rc.1，npm 上已有 rc.2，防漂移）
         run: npm install -g @deepseek-ai/dsh@0.2.0-rc.1
 
-      # pnpm link 安装后，DSH 引导经真实路径解析插件依赖 → 仓库必须自带 node_modules
-      - name: 仓库依赖
-        run: npm ci --legacy-peer-deps
-
-      - name: 模块级 + 静态检查
-        run: node scripts/verify-install.mjs
-
-      - name: 干净 DSH 组合级验证（官方 plugin add）
-        env:
-          DSH_HOME: ${{ runner.temp }}/dsh-home
-        run: |
-          mkdir -p "$DSH_HOME"
-          dsh ci --from-default-profile headless --dump-config > /dev/null
-          dsh plugin --profile ci add "$GITHUB_WORKSPACE"
-          dsh --profile ci --dump-config | tee /tmp/tree.yml
-          grep -A2 'id: promptbook' /tmp/tree.yml
+      - name: 全链可安装性门（与本地 npm run ci 同一脚本）
+        run: npm run ci

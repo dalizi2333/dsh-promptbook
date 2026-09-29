@@ -26,7 +26,8 @@
 		"@mimo-codex/dsh-llm-mimo": ">=0.2.0"
 	},
 	"scripts": {
-		"verify:install": "node scripts/verify-install.mjs"
+		"verify:install": "node scripts/verify-install.mjs",
+		"ci": "node scripts/ci.mjs"
 	},
 	"dependencies": {
 		"@deepseek-ai/schemastery": "~3.18.4"

@@ -1,9 +1,12 @@
 # AGENTS.md — dsh-promptbook 接口契约与工程纪律
 
 给 AI 代理/消费方看的接口契约与仓库纪律。修改本插件前先读
-`log/promptbook-plugin/README.md`（设计权威）与 `log/promptbook-plugin/decisions.md`（D1–D11）。
+`log/promptbook-plugin/README.md`（设计权威）与 `log/promptbook-plugin/decisions.md`（D1–D20）；
+GUI 卡线先读 `log/gui-acceptance/README.md`（feat/gui-acceptance 分支的现行计划）。
 
-**当前状态：S0–S4 完成（含 GUI 视觉验收；发布前剩 GUI 美化、npm 发布、默认接管语义定夺——见 log/promptbook-plugin/handover.md §4）。**
+**当前状态：S0–S4 完成（含 GUI 视觉验收）。GUI 美化在 `feat/gui-acceptance` 分支重启
+（plan 目录 `log/gui-acceptance/`；未提交的旧美化轮已归档 `archive/gui-uncommitted-20260930`，
+仅为设计参考、代码不再使用）；发布前剩 GUI 磨合、npm 发布——见各自 handover。**
 
 ## 一、promptbook 服务（**S1 起生效**）
 
@@ -55,6 +58,11 @@ cordis.patch.yml 顶层 `promptbook` 行（全部 volatile 字符串，双形态
 - **本地全绿才 push**：`npm run ci`（`scripts/ci.mjs`）与 GitHub Actions 跑**同一份脚本**；本机启用 `git config core.hooksPath scripts/hooks` 后 pre-push 钩子强制执行——钩子挡下的 push 就是还没绿的 push。本机 dsh 不在 PATH 时 `export DSH_RUNTIME_BIN=<运行时 dsh 路径>`（本机值见 local-env.md）。
 - **仓库必须自带 node_modules**（本机 `npm ci --legacy-peer-deps`）：pnpm link 安装后 DSH 引导经真实路径解析插件依赖——依赖装不全 = 别人的实例装不上你。
 - `log/promptbook-plugin/` 是计划的唯一事实来源（README=设计权威、handover=接手入口、progress=进度、decisions=决策）；收工必须回写 `progress.md`。
+- **client 面源码 = `src/client/*.js` 分片，`lib/client.js` 是拼装产物**（宿主契约：每包只认
+  `exports["./client"]` 单一入口、factory 内 require 不认相对路径——运行时多文件不存在）。
+  改分片后必须 `npm run build:client`；**禁止手改 `lib/client.js`**（会被拼装覆盖，且
+  `ci.mjs` 的 `--check` 门会抓出分片与产物不一致）。分片不是独立模块：同处一个 factory
+  闭包，靠声明序共享标识符，新增分片须在 `build-client.mjs` 的 PARTS 里按声明序登记。
 - **提交文档零本机绝对路径**；本机路径只写进 `log/**/local-env.md`（git-ignore，不入库）。
 - 未经 owner 不 commit / 不 push；不动 dsh-llm-mimo 仓。
 - 不移植旧基线 llm/stream 瀑布内改写/直发的任何代码（已死方案：冻结 options.system 赋值抛错、yield* 不可迭代炸全部请求）。

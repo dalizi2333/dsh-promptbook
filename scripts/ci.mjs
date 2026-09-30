@@ -4,6 +4,7 @@
  * 链路 = CI workflow 的全部实质步骤：
  *   1. 依赖就位检查（node_modules 缺失则 npm ci --legacy-peer-deps）；
  *   2. node scripts/verify-install.mjs（模块级 + 静态 21 项）；
+ *   2.5. node scripts/build-client.mjs --check（lib/client.js 与 src/client/ 分片一致）；
  *   3. 干净临时 DSH_HOME：from-default-profile 造 profile → 官方 plugin add 本仓
  *      → --dump-config 断言 promptbook 条目。
  *
@@ -52,6 +53,10 @@ if (!existsSync(join(root, "node_modules", "@deepseek-ai", "schemastery"))) {
 // --- 2. 模块级 + 静态 ---
 console.log("▶ verify-install");
 run("node", [join(root, "scripts", "verify-install.mjs")]);
+
+// --- 2.5 产物新鲜度：src/client/ 分片 ↔ lib/client.js 一致 ---
+console.log("▶ build-client --check");
+run("node", [join(root, "scripts", "build-client.mjs"), "--check"]);
 
 // --- 3. resolve 链逻辑测试 ---
 console.log("▶ test（resolve 链 13 场景）");

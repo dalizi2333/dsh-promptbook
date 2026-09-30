@@ -162,9 +162,10 @@
 								tabIndex: isExpanded ? 0 : -1,
 								onChange: (event) => props.pick("draft", k.key, event.target.value)
 							}),
-							// 图标动作钮（M3-R11，owner 定）：绿软盘=保存（空覆盖是合法功能）、
-							// 黄回转箭头=清除该覆盖回归默认；28×28 实心照 llm-mimo 图标钮范式，
-							// 右下角对齐；提示行退役（空草稿保存的语义由按钮状态位表达）
+							// 图标动作钮（M3-R11/R12，owner 定稿）：绿 Iconoir 软盘描边=保存（空覆盖合法）、
+							// 黄二创挖孔=清除回归默认（Iconoir 同廓实心 + Humble·restart 缩小 0.6389 挖空，
+							// 挖孔描边 3.76 → 视觉 2.4/24vb，十档矩阵选定 S=0.639）；28×28 squircle 照
+							// llm-mimo 图标钮范式，右下角对齐
 							(0, jsx.jsxs)("div", { className: "pb-editoractions", children: [
 								(0, jsx.jsxs)("button", {
 									type: "button",
@@ -173,10 +174,10 @@
 									"aria-label": t("set"),
 									disabled: disabled || rowDraft === preview,
 									onClick: () => props.commitEntry(k.key, sel.model, rowDraft),
-									children: [(0, jsx.jsx)("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none", xmlns: "http://www.w3.org/2000/svg", "aria-hidden": true, children: [
-										(0, jsx.jsx)("path", { d: "M2.5 2.5h7l4 4v7h-11z", stroke: "currentColor", "stroke-width": 1 }),
-										(0, jsx.jsx)("path", { d: "M5.5 2.5v3.5h5V2.5", stroke: "currentColor", "stroke-width": 1 }),
-										(0, jsx.jsx)("path", { d: "M5 13.5V9h6v4.5", stroke: "currentColor", "stroke-width": 1 })
+									children: [(0, jsx.jsxs)("svg", { width: 16, height: 16, viewBox: "0 0 24 24", fill: "none", xmlns: "http://www.w3.org/2000/svg", "aria-hidden": true, stroke: "currentColor", "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round", children: [
+										(0, jsx.jsx)("path", { d: "M3 19V5a2 2 0 0 1 2-2h11.172a2 2 0 0 1 1.414.586l2.828 2.828A2 2 0 0 1 21 7.828V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z" }),
+										(0, jsx.jsx)("path", { d: "M8.6 9h6.8a.6.6 0 0 0 .6-.6V3.6a.6.6 0 0 0-.6-.6H8.6a.6.6 0 0 0-.6.6v4.8a.6.6 0 0 0 .6.6Z" }),
+										(0, jsx.jsx)("path", { d: "M6 13.6V21h12v-7.4a.6.6 0 0 0-.6-.6H6.6a.6.6 0 0 0-.6.6Z" })
 									] })]
 								}),
 								(0, jsx.jsxs)("button", {
@@ -186,9 +187,9 @@
 									"aria-label": t("clear"),
 									disabled: disabled || !overridden,
 									onClick: () => props.commitEntry(k.key, sel.model, null),
-									children: [(0, jsx.jsx)("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none", xmlns: "http://www.w3.org/2000/svg", "aria-hidden": true, children: [
-										(0, jsx.jsx)("path", { d: "M2 8a6 6 0 1 0 6-6 6.5 6.5 0 0 0-4.49 1.83L2 5.33", stroke: "currentColor", "stroke-width": 1 }),
-										(0, jsx.jsx)("path", { d: "M2 2v3.33h3.33", stroke: "currentColor", "stroke-width": 1 })
+									children: [
+										(0, jsx.jsx)("defs", { children: (0, jsx.jsx)("mask", { id: "pb-clear-knock", children: (0, jsx.jsx)("path", { d: "M4.252 4v5H9M5.07 8a8 8 0 1 1-.818 6", transform: "translate(4.333 4.333) scale(0.6389)", fill: "none", stroke: "#000", "stroke-width": "3.76", "stroke-linecap": "round", "stroke-linejoin": "round" }) }) }),
+										(0, jsx.jsx)("path", { d: "M3 19V5a2 2 0 0 1 2-2h11.172a2 2 0 0 1 1.414.586l2.828 2.828A2 2 0 0 1 21 7.828V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z", fill: "#fff", stroke: "#fff", "stroke-width": "1.5", mask: "url(#pb-clear-knock)" })
 									] })]
 								})
 							] })

@@ -198,11 +198,6 @@
 						if (keyname && !keyname.matches(":hover") && getComputedStyle(keyname).boxShadow === "none") {
 							keyname.classList.toggle("pb-clipped", keyname.scrollWidth > keyname.clientWidth);
 						}
-						// 正文预览截断联动（M3-R7）：仅折叠态参与（展开态正文归编辑器，预览淡出）
-						const body = item.querySelector(".pb-bodytext");
-						if (body && !isExpItem && !body.matches(":hover") && getComputedStyle(body).boxShadow === "none") {
-							body.classList.toggle("pb-clipped", body.scrollWidth > body.clientWidth);
-						}
 						const src = item.querySelector(".pb-source");
 						if (!src) continue;
 						// 折叠徽标是瞬态显形（隐藏态 scrollWidth 恒大于 0），“截断”只对展开态有意义，
@@ -235,10 +230,6 @@
 					const keyname = item.querySelector(".pb-keyname");
 					if (keyname && !keyname.matches(":hover") && getComputedStyle(keyname).boxShadow === "none") {
 						keyname.classList.toggle("pb-clipped", keyname.scrollWidth > keyname.clientWidth);
-					}
-					const body = item.querySelector(".pb-bodytext");
-					if (body && !item.querySelector(".pb-keyrow.expanded") && !body.matches(":hover") && getComputedStyle(body).boxShadow === "none") {
-						body.classList.toggle("pb-clipped", body.scrollWidth > body.clientWidth);
 					}
 					// 折叠徽标不参与截断判定（M2-R6，同 measureAll）
 					const src = item.querySelector(".pb-source");

@@ -132,18 +132,12 @@
 				const pathText = sourcePathOf(traced?.source, state.layersJson);
 				const line = (0, jsx.jsxs)("div", {
 					className: "pb-keyrow " + (isExpanded ? "expanded" : "collapsed"),
-					style: { display: "grid", gridTemplateColumns: isExpanded ? "14px 50% minmax(0, 1fr) minmax(0, auto)" : "14px 100px 1fr auto", gap: 8, alignItems: "center", minWidth: 0 },
+					style: { display: "grid", gridTemplateColumns: isExpanded ? "14px 50% minmax(0, 1fr)" : "14px 100px 1fr", gap: 8, alignItems: "center", minWidth: 0 },
 					children: [
 						(0, jsx.jsx)("span", { className: "pb-dot", role: "img", "aria-label": sourceTitle, style: { background: dotColorOf(traced?.source) } }),
 						(0, jsx.jsx)("span", { className: "pb-keyname", style: { fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--dsw-alias-label-primary)" }, children: k.key }),
-						// 折叠态正文暂时关闭（记账见 progress.md 遗留：正文元素待大改+截断联动）；列位保留撑住网格
-					// 折叠态正文预览（M3-R7，关闭了整条线遗留记账的“正文元素”）：当前生效文本，
-					// 灰 = 未覆盖；展开态淡出（正文由下方编辑器接管），列位保留撑住网格过渡
-					(0, jsx.jsx)("span", {
-						className: "pb-bodytext" + (overridden ? " pb-overridden" : ""),
-						style: { minWidth: 0, textAlign: "left", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
-						children: preview
-					}),
+						// 正文预览已并入下方常驻编辑器（M3-R3：textarea 折叠态扁平化即预览，
+						// 同一元素连续过渡），本行只剩 灯/键名/来源 三列
 						(0, jsx.jsxs)("span", { className: "pb-source" + (isExpanded ? " expanded" : ""), children: [
 							(0, jsx.jsx)("span", { children: `【${sourceTitle}】` }),
 							pathText ? (0, jsx.jsx)("span", { className: "pb-path", children: pathText }) : null
@@ -160,11 +154,12 @@
 						style: { display: "grid", gap: 6 },
 						children: [
 							(0, jsx.jsx)("textarea", {
-								className: "pb-ta",
+								className: "pb-ta" + (overridden ? " pb-overridden" : ""),
 								"aria-label": `${k.key} · ${t("draft")}`,
 								placeholder: overridden ? "" : preview,
-								value: rowDraft,
+								value: isExpanded ? rowDraft : preview,
 								rows: 4,
+								tabIndex: isExpanded ? 0 : -1,
 								onChange: (event) => props.pick("draft", k.key, event.target.value)
 							}),
 							(0, jsx.jsx)("p", { style: NOTICE_STYLE.tertiary, children: t("draftHint") }),

@@ -289,8 +289,12 @@
 							const isExp = j === expIdx;
 							const groupStart = isExp || (expIdx !== -1 && j === expIdx + 1);
 							const groupEnd = j === state.keyOptions.length - 1 || isExp || j + 1 === expIdx;
-							// 缝合体系：同底色卡 margin 0 即无缝；负 margin 重叠仅用于结尾假行
-							// 盖住末键圆角区——故末键 wrapper 预留 14px 底 padding 作重叠缓冲
+							// 缝合体系：同底色卡 margin 0 即无缝；负 margin 重叠仅用于结尾假行——
+							// -12px 恰好盖住末键卡圆角区，故末键卡须常备 12px 底部缓冲（假行附着时），
+							// 否则假行背景吃进行内容（M2-R2）。缓冲加在卡上而非 wrapper：wrapper 的
+							// padding 会把假行推到卡外，盖不住圆角区。18 = 6 常规 + 12 被叠盖，
+							// 可见下缘与其他行一致；假行独立成卡（末键即展开卡）时无需缓冲。
+							const endBuffer = j === state.keyOptions.length - 1 && expIdx !== state.keyOptions.length - 1 ? 18 : undefined;
 							const marginTop = j === 0 ? (isExp ? 8 : -12) : (groupStart ? 8 : -12);
 							// 组尾卡（展开卡上方断缝处的收口）= 上缘方角（与上方续缝）+ 下缘圆角（组结束）；
 							// 折叠态末键同享此值无副作用——结尾假行 -12px 同色叠盖其圆角区（重叠缓冲）
@@ -300,7 +304,7 @@
 								style: { marginTop: `${marginTop}px` },
 								children: (0, jsx.jsx)("div", {
 									className: "pb-fillcard pb-keycard pb-keyitem",
-									style: { borderRadius },
+									style: { borderRadius, paddingBottom: endBuffer },
 									onClick: () => props.pick("expand", k.key, isOverridden(state.userEntriesJson, k.key, sel.model) ? (parseEntries(state.userEntriesJson)[k.key]?.[sel.model] ?? "") : ""),
 									children: keyItem(k, isExp)
 								}, k.key)

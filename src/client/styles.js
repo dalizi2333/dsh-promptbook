@@ -39,7 +39,7 @@
 			.pb-keyitem:has(.pb-keyrow.expanded) { padding: 10px; }
 			/* 结尾假行：透明感应条——默认隐形（10px 零存在感），悬浮长到 26px 显形小点+彩蛋文本，全左对齐 */
 			/* 结尾假行：大卡片的填充向下延伸块（固定尺寸，背板+底圆角由它闭合） */
-			.pb-endrow { position: relative; box-sizing: border-box; height: 20px; padding: 0 12px 0 14px; display: flex; align-items: center; gap: 8px; transition: margin-top .26s cubic-bezier(.2,0,0,1), border-radius .26s cubic-bezier(.2,0,0,1); }
+			.pb-endrow { position: relative; box-sizing: border-box; height: 14px; padding: 0 12px 0 14px; display: flex; align-items: center; gap: 8px; transition: margin-top .26s cubic-bezier(.2,0,0,1), border-radius .26s cubic-bezier(.2,0,0,1); }
 			/* 彩蛋：内容置于假行填充范围内（垂直居中），悬浮淡入+左移到位 */
 			.pb-endrow .pb-eggdot { flex: none; margin-top: 2px; transform: translateX(8px); width: 5px; height: 5px; padding: 3px; border-radius: 50%; background: var(--dsw-alias-label-caption); background-clip: content-box; opacity: 0; transition: opacity .2s ease, transform .26s cubic-bezier(.2,0,0,1); }
 			.pb-endrow.pb-eggshow .pb-eggdot { opacity: .55; transform: translate(-50%, -50%) translateX(0); }

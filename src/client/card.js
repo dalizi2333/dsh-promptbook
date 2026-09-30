@@ -288,23 +288,17 @@
 						...state.keyOptions.map((k, j) => {
 							const isExp = j === expIdx;
 							const groupStart = isExp || (expIdx !== -1 && j === expIdx + 1);
-							const groupEnd = j === state.keyOptions.length - 1 || isExp || j + 1 === expIdx;
-							// 缝合体系：同底色卡 margin 0 即无缝；负 margin 重叠仅用于结尾假行——
-							// -12px 恰好盖住末键卡圆角区，故末键卡须常备 12px 底部缓冲（假行附着时），
-							// 否则假行背景吃进行内容（M2-R2）。缓冲加在卡上而非 wrapper：wrapper 的
-							// padding 会把假行推到卡外，盖不住圆角区。18 = 6 常规 + 12 被叠盖，
-							// 可见下缘与其他行一致；假行独立成卡（末键即展开卡）时无需缓冲。
-							const endBuffer = j === state.keyOptions.length - 1 && expIdx !== state.keyOptions.length - 1 ? 18 : undefined;
+							// 组尾 = 下方有断缝的卡（自身展开，或下一张是展开卡）：上缝方角 + 下缘圆角。
+							// 末键贴着假行时不算组尾——它是缝中卡（下缘方角），收口由假行的圆角底负责
+							const groupEnd = isExp || j + 1 === expIdx;
 							const marginTop = j === 0 ? (isExp ? 8 : -12) : (groupStart ? 8 : -12);
-							// 组尾卡（展开卡上方断缝处的收口）= 上缘方角（与上方续缝）+ 下缘圆角（组结束）；
-							// 折叠态末键同享此值无副作用——结尾假行 -12px 同色叠盖其圆角区（重叠缓冲）
 							const borderRadius = groupStart && groupEnd ? "12px" : groupStart ? "12px 12px 0 0" : groupEnd ? "0 0 12px 12px" : "0px";
 							return (0, jsx.jsx)("div", {
 								className: "pb-rowwrap",
 								style: { marginTop: `${marginTop}px` },
 								children: (0, jsx.jsx)("div", {
 									className: "pb-fillcard pb-keycard pb-keyitem",
-									style: { borderRadius, paddingBottom: endBuffer },
+									style: { borderRadius },
 									onClick: () => props.pick("expand", k.key, isOverridden(state.userEntriesJson, k.key, sel.model) ? (parseEntries(state.userEntriesJson)[k.key]?.[sel.model] ?? "") : ""),
 									children: keyItem(k, isExp)
 								}, k.key)
@@ -312,9 +306,11 @@
 						}),
 						(0, jsx.jsx)("div", {
 							className: "pb-fillcard pb-endrow" + (expIdx === state.keyOptions.length - 1 ? " pb-separated" : ""),
+							// 附着态 -6px：恰好吃满末键卡 6px 底 padding，不进内容（M2-R3）——
+							// 文本到卡底总间距 = 假行可见 14px，与历史形态一致
 							style: expIdx === state.keyOptions.length - 1
 								? { marginTop: "8px", borderRadius: "12px" }
-								: { marginTop: "-12px", borderRadius: "0 0 12px 12px" },
+								: { marginTop: "-6px", borderRadius: "0 0 12px 12px" },
 							children: [
 								(0, jsx.jsx)("span", { className: "pb-eggdot" }),
 								(0, jsx.jsx)("span", { className: "pb-eggtext", children: "用户也不知道要放什么但必须得有这个假行" })

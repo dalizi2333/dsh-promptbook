@@ -66,7 +66,15 @@
 			   任意缩放舍入都啃不到墨迹（M3-R9 20px 在缩放变化下仍不稳，owner 令再放宽）。
 			   折叠态提示/按钮退出版流（否则被三行隐式网格平分，全部压扁） */
 			.pb-editorwrap > .pb-editor { min-height: 24px; }
-			.pb-editoractions { display: flex; gap: 8; }
+			.pb-editoractions { display: flex; gap: 8; justify-content: flex-end; }
+			/* 图标动作钮（M3-R11）：28×28 实心，范式照 llm-mimo 图标钮（owner 定）。
+			   绿=保存（空覆盖合法，存空即空覆盖），黄=清除回归默认（黄绿沿用指示灯配色） */
+			.pb-iconbtn { width: 28px; height: 28px; padding: 0; border: 0; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: #fff; transition: background-color .15s ease, opacity .15s ease; }
+			.pb-iconbtn:disabled { opacity: .4; cursor: default; }
+			.pb-iconsave { background: #22C55E; }
+			.pb-iconsave:hover:not(:disabled) { background: #16A34A; }
+			.pb-iconclear { background: #EAB308; }
+			.pb-iconclear:hover:not(:disabled) { background: #CA8A04; }
 			.pb-editorwrap:not(.open) .pb-editor > :not(textarea) { display: none; }
 			textarea.pb-ta { resize: vertical; max-height: 440px; padding: 8px 10px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 10px; corner-shape: superellipse(1.43); background: var(--dsw-alias-bg-layer-1); transition: border-color .3s cubic-bezier(.2,0,0,1), background-color .3s cubic-bezier(.2,0,0,1), color .3s cubic-bezier(.2,0,0,1), padding .3s cubic-bezier(.2,0,0,1), margin-right .3s cubic-bezier(.2,0,0,1); }
 			/* 折叠态 textarea = 正文预览（M3-R3）：扁平无边框、灰 = 未覆盖；不可点不可聚焦。

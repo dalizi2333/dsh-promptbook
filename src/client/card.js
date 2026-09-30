@@ -162,19 +162,34 @@
 								tabIndex: isExpanded ? 0 : -1,
 								onChange: (event) => props.pick("draft", k.key, event.target.value)
 							}),
-							(0, jsx.jsx)("p", { style: NOTICE_STYLE.tertiary, children: t("draftHint") }),
-								(0, jsx.jsxs)("div", { className: "pb-editoractions", children: [
-								(0, jsx.jsx)(primitives.Button, {
-									variant: "secondary",
-									disabled: disabled || rowDraft === "",
+							// 图标动作钮（M3-R11，owner 定）：绿软盘=保存（空覆盖是合法功能）、
+							// 黄回转箭头=清除该覆盖回归默认；28×28 实心照 llm-mimo 图标钮范式，
+							// 右下角对齐；提示行退役（空草稿保存的语义由按钮状态位表达）
+							(0, jsx.jsxs)("div", { className: "pb-editoractions", children: [
+								(0, jsx.jsxs)("button", {
+									type: "button",
+									className: "pb-iconbtn pb-iconsave",
+									title: t("set"),
+									"aria-label": t("set"),
+									disabled: disabled || rowDraft === preview,
 									onClick: () => props.commitEntry(k.key, sel.model, rowDraft),
-									children: t("set")
+									children: [(0, jsx.jsx)("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none", xmlns: "http://www.w3.org/2000/svg", "aria-hidden": true, children: [
+										(0, jsx.jsx)("path", { d: "M2.5 2.5h7l4 4v7h-11z", stroke: "currentColor", "stroke-width": 1 }),
+										(0, jsx.jsx)("path", { d: "M5.5 2.5v3.5h5V2.5", stroke: "currentColor", "stroke-width": 1 }),
+										(0, jsx.jsx)("path", { d: "M5 13.5V9h6v4.5", stroke: "currentColor", "stroke-width": 1 })
+									] })]
 								}),
-								(0, jsx.jsx)(primitives.Button, {
-									variant: "secondary",
+								(0, jsx.jsxs)("button", {
+									type: "button",
+									className: "pb-iconbtn pb-iconclear",
+									title: t("clear"),
+									"aria-label": t("clear"),
 									disabled: disabled || !overridden,
 									onClick: () => props.commitEntry(k.key, sel.model, null),
-									children: t("clear")
+									children: [(0, jsx.jsx)("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none", xmlns: "http://www.w3.org/2000/svg", "aria-hidden": true, children: [
+										(0, jsx.jsx)("path", { d: "M2 8a6 6 0 1 0 6-6 6.5 6.5 0 0 0-4.49 1.83L2 5.33", stroke: "currentColor", "stroke-width": 1 }),
+										(0, jsx.jsx)("path", { d: "M2 2v3.33h3.33", stroke: "currentColor", "stroke-width": 1 })
+									] })]
 								})
 							] })
 						]

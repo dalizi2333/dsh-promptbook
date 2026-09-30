@@ -163,7 +163,7 @@
 								onChange: (event) => props.pick("draft", k.key, event.target.value)
 							}),
 							(0, jsx.jsx)("p", { style: NOTICE_STYLE.tertiary, children: t("draftHint") }),
-							(0, jsx.jsxs)("div", { style: { display: "flex", gap: 8 }, children: [
+								(0, jsx.jsxs)("div", { className: "pb-editoractions", children: [
 								(0, jsx.jsx)(primitives.Button, {
 									variant: "secondary",
 									disabled: disabled || rowDraft === "",

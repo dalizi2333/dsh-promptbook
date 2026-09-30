@@ -57,12 +57,17 @@
 			/* 展开/折叠双向连续过渡（M3-R1/R3）：编辑器常驻挂载，grid-rows 0fr↔1fr 过渡；
 			   wrap min-height 22px = 折叠态的单行预览窗——textarea 即预览本体（M3-R3：
 			   同一元素连续过渡），扁平化灰字充当预览，展开原地长高+边框底色浮现 */
-			.pb-editorwrap { display: grid; grid-template-rows: 0fr; margin-left: 30px; min-height: 22px; overflow: hidden; }
+			.pb-editorwrap { display: grid; grid-template-rows: 0fr; margin-left: 30px; overflow: hidden; }
 			.pb-editorwrap.open { grid-template-rows: 1fr; }
-			.pb-editorwrap > .pb-editor { min-height: 0; }
+			/* 编辑器自身 22px 下限：0fr 轨道的收纳终点=单行预览窗（textarea 恰好一行），
+			   不会被 stretch 压扁成 0——预览窗与编辑器因此是同一个盒子的两处高度。
+			   折叠态提示/按钮退出版流（否则 22px 被三行隐式网格平分，全部压扁） */
+			.pb-editorwrap > .pb-editor { min-height: 22px; }
+			.pb-editoractions { display: flex; gap: 8; }
+			.pb-editorwrap:not(.open) .pb-editor > :not(textarea) { display: none; }
 			textarea.pb-ta { resize: vertical; max-height: 440px; padding: 8px 10px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 10px; corner-shape: superellipse(1.43); background: var(--dsw-alias-bg-layer-1); transition: border-color .28s cubic-bezier(.2,0,0,1), background-color .28s cubic-bezier(.2,0,0,1), color .28s cubic-bezier(.2,0,0,1), padding .28s cubic-bezier(.2,0,0,1); }
 			/* 折叠态 textarea = 正文预览（M3-R3）：扁平无边框、灰 = 未覆盖；不可点不可聚焦 */
-			.pb-editorwrap:not(.open) .pb-ta { padding-top: 2px; padding-bottom: 2px; border-color: transparent; background: 0 0; resize: none; pointer-events: none; color: var(--dsw-alias-label-tertiary); }
+			.pb-editorwrap:not(.open) .pb-ta { padding-top: 2px; padding-bottom: 2px; line-height: 16px; border-color: transparent; background: 0 0; resize: none; pointer-events: none; color: var(--dsw-alias-label-tertiary); }
 			.pb-editorwrap:not(.open) .pb-ta.pb-overridden { color: var(--dsw-alias-label-primary); }
 			.pb-keyitem .pb-editor { cursor: default; }
 			.pb-trigger { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 13px; color: var(--dsw-alias-label-primary); background: 0 0; border: 1px solid var(--dsw-alias-border-l2); border-radius: 8px; padding: 3px 10px; cursor: pointer; }

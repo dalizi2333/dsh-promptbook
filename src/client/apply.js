@@ -56,9 +56,9 @@
 				async commitEntry(key, model, text) {
 					const merged = mergeEntry(scope.getSnapshot().value?.entriesJson ?? "{}", key, model, text);
 					controller.form.actions().edit("entriesJson", merged);
-					await controller.form.save();
-					controller.drafts = { ...controller.drafts, [key]: "" };
-					controller.store.set(controller.projection(scope.getSnapshot()));
+									await controller.form.save();
+									controller.drafts = { ...controller.drafts, [key]: text };
+									controller.store.set(controller.projection(scope.getSnapshot()));
 				}
 			};
 			controller.form = new primitives.SettingsFormModel(scope, [

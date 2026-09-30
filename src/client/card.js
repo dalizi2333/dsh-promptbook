@@ -189,11 +189,8 @@
 									disabled: disabled || !overridden,
 									onClick: () => props.commitEntry(k.key, sel.model, null),
 children: [(0, jsx.jsxs)("svg", { width: 16, height: 16, viewBox: "0 0 24 24", xmlns: "http://www.w3.org/2000/svg", "aria-hidden": true, children: [
-										(0, jsx.jsx)("defs", { children: (0, jsx.jsx)("mask", { id: "pb-clear-knock-" + slug, children: [
-											(0, jsx.jsx)("rect", { width: 24, height: 24, fill: "#fff" }),
-											(0, jsx.jsx)("path", { d: "M4.252 4v5H9M5.07 8a8 8 0 1 1-.818 6", transform: "translate(5.04 6.54) scale(0.58)", fill: "none", stroke: "#000", "stroke-width": "2.25", "stroke-linecap": "round", "stroke-linejoin": "round" })
-										] }) }),
-										(0, jsx.jsx)("path", { d: "M3 19V5a2 2 0 0 1 2-2h11.172a2 2 0 0 1 1.414.586l2.828 2.828A2 2 0 0 1 21 7.828V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z", class: "pb-clearglyph", mask: "url(#pb-clear-knock-" + slug + ")" })
+										(0, jsx.jsx)("path", { d: "M3 19V5a2 2 0 0 1 2-2h11.172a2 2 0 0 1 1.414.586l2.828 2.828A2 2 0 0 1 21 7.828V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z", class: "pb-clearglyph" }),
+										(0, jsx.jsx)("path", { d: "M4.252 4v5H9M5.07 8a8 8 0 1 1-.818 6", transform: "translate(6.6 11.1) scale(0.45)", class: "pb-clearink", fill: "none", "stroke-width": "4.5", "stroke-linecap": "round", "stroke-linejoin": "round" })
 									] })]
 								})
 							] })

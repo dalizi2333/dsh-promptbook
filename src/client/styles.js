@@ -77,8 +77,10 @@
 			.pb-iconsave:hover:not(:disabled) svg path { stroke: #fff; }
 			.pb-iconclear { background: rgba(234, 179, 8, 0.35); }
 			.pb-iconclear:hover:not(:disabled) { background: #EAB308; }
-			.pb-iconclear svg path { fill: #a16207; transition: fill .15s ease; }
-			.pb-iconclear:hover:not(:disabled) svg path { fill: #fff; }
+			.pb-iconclear svg .pb-clearglyph { fill: #a16207; stroke: #a16207; stroke-width: 1.5; transition: fill .15s ease, stroke .15s ease; }
+			.pb-iconclear svg .pb-clearink { fill: none; stroke: #c7950a; stroke-width: 4.5; transition: stroke .15s ease; }
+			.pb-iconclear:hover:not(:disabled) svg .pb-clearglyph { fill: #fff; stroke: #fff; }
+			.pb-iconclear:hover:not(:disabled) svg .pb-clearink { stroke: #eab308; }
 			.pb-editorwrap:not(.open) .pb-editor > :not(textarea) { display: none; }
 			textarea.pb-ta { resize: vertical; max-height: 440px; padding: 8px 10px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 10px; corner-shape: superellipse(1.43); background: var(--dsw-alias-bg-layer-1); transition: border-color .3s cubic-bezier(.2,0,0,1), background-color .3s cubic-bezier(.2,0,0,1), color .3s cubic-bezier(.2,0,0,1), padding .3s cubic-bezier(.2,0,0,1), margin-right .3s cubic-bezier(.2,0,0,1); }
 			/* 折叠态 textarea = 正文预览（M3-R3）：扁平无边框、灰 = 未覆盖；不可点不可聚焦。

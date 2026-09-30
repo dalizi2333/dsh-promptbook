@@ -67,11 +67,13 @@
 			.pb-editorwrap > .pb-editor { min-height: 22px; }
 			.pb-editoractions { display: flex; gap: 8; }
 			.pb-editorwrap:not(.open) .pb-editor > :not(textarea) { display: none; }
-			textarea.pb-ta { resize: vertical; max-height: 440px; padding: 8px 10px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 10px; corner-shape: superellipse(1.43); background: var(--dsw-alias-bg-layer-1); transition: border-color .28s cubic-bezier(.2,0,0,1), background-color .28s cubic-bezier(.2,0,0,1), color .28s cubic-bezier(.2,0,0,1), padding .28s cubic-bezier(.2,0,0,1); }
+			textarea.pb-ta { resize: vertical; max-height: 440px; padding: 8px 10px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 10px; corner-shape: superellipse(1.43); background: var(--dsw-alias-bg-layer-1); transition: border-color .3s cubic-bezier(.2,0,0,1), background-color .3s cubic-bezier(.2,0,0,1), color .3s cubic-bezier(.2,0,0,1), padding .3s cubic-bezier(.2,0,0,1); }
 			/* 折叠态 textarea = 正文预览（M3-R3）：扁平无边框、灰 = 未覆盖；不可点不可聚焦。
-			   悬停行时右侧让位 290px 给来源徽标（max 280 + 右缘），避免压字（M3-R4） */
+			   悬停行时右侧让位 = 徽标实际自然宽（--src-w，测量管线写入，上限 280）+ 12px
+			   间隙，过渡时长与徽标 max-width 的 .3s 同曲线——文字退让与徽标展开逐帧同步
+			   （M3-R5：固定 290px 按最大宽预留，折叠徽标只显标题段时留出一大段空档） */
 			.pb-editorwrap:not(.open) .pb-ta { padding-top: 2px; padding-bottom: 2px; line-height: 16px; border-color: transparent; background: 0 0; resize: none; pointer-events: none; color: var(--dsw-alias-label-tertiary); }
-			.pb-keyitem:hover .pb-keyrow.collapsed + .pb-editorwrap:not(.open) .pb-ta { padding-right: 290px; }
+			.pb-keyitem:hover .pb-keyrow.collapsed + .pb-editorwrap:not(.open) .pb-ta { padding-right: calc(min(var(--src-w, 0px), 280px) + 12px); }
 			.pb-editorwrap:not(.open) .pb-ta.pb-overridden { color: var(--dsw-alias-label-primary); }
 			.pb-keyitem .pb-editor { cursor: default; }
 			.pb-trigger { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 13px; color: var(--dsw-alias-label-primary); background: 0 0; border: 1px solid var(--dsw-alias-border-l2); border-radius: 8px; padding: 3px 10px; cursor: pointer; }

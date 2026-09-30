@@ -195,6 +195,9 @@
 						}
 						const src = item.querySelector(".pb-source");
 						if (!src) continue;
+						// 徽标自然宽度入 CSS 变量：悬停让位 padding 用它精确截断（M3-R5），
+						// 隐藏态 scrollWidth 也量得到（max-width:0 不影响 scrollWidth）
+						item.style.setProperty("--src-w", src.scrollWidth + "px");
 						// 折叠徽标是瞬态显形（隐藏态 scrollWidth 恒大于 0），“截断”只对展开态有意义，
 						// 否则 pb-clipped 常开、指针蹭到右缘就误触弹卡（M2-R6）
 						if (isExpItem && !src.matches(":hover") && getComputedStyle(src).boxShadow === "none") {
@@ -226,7 +229,9 @@
 					if (keyname && !keyname.matches(":hover") && getComputedStyle(keyname).boxShadow === "none") {
 						keyname.classList.toggle("pb-clipped", keyname.scrollWidth > keyname.clientWidth);
 					}
-					// 折叠徽标不参与截断判定（M2-R6，同 measureAll）
+					// 折叠徽标不参与截断判定（M2-R6，同 measureAll）；徽标宽度变量同机写入
+					const src = item.querySelector(".pb-source");
+					if (src) item.style.setProperty("--src-w", src.scrollWidth + "px");
 					const src = item.querySelector(".pb-source");
 					if (src && item.querySelector(".pb-keyrow.expanded") && !src.matches(":hover") && getComputedStyle(src).boxShadow === "none") {
 						src.classList.toggle("pb-clipped", src.scrollWidth > src.clientWidth);

@@ -61,22 +61,23 @@
 			   在「行内预览 ↔ 下方编辑器」两个停靠位之间滑移 */
 			.pb-editorwrap { display: grid; grid-template-rows: 0fr; margin-top: -22px; margin-left: 120px; overflow: hidden; transition: grid-template-rows .28s cubic-bezier(.2,0,0,1), margin-top .28s cubic-bezier(.2,0,0,1), margin-left .28s cubic-bezier(.2,0,0,1); }
 			.pb-editorwrap.open { grid-template-rows: 1fr; margin-top: 0; margin-left: 30px; }
-			/* 编辑器自身 18px 下限：0fr 轨道的收纳终点=单行预览窗（行盒 16 + 底 padding 2，
-			   字形底部不削；第二行字形从 ~18.5px 才开始，18px 窗仍不露——M3-R7/R8）。
+			/* 编辑器自身 24px 下限：0fr 轨道的收纳终点=单行预览窗。pre 之后内容恒单行、
+			   无第二行可露，窗高只服务墨迹余量：24px 给行底墨迹（下划线）留 ~7px 纯空，
+			   任意缩放舍入都啃不到墨迹（M3-R9 20px 在缩放变化下仍不稳，owner 令再放宽）。
 			   折叠态提示/按钮退出版流（否则被三行隐式网格平分，全部压扁） */
-			.pb-editorwrap > .pb-editor { min-height: 20px; }
+			.pb-editorwrap > .pb-editor { min-height: 24px; }
 			.pb-editoractions { display: flex; gap: 8; }
 			.pb-editorwrap:not(.open) .pb-editor > :not(textarea) { display: none; }
-			textarea.pb-ta { resize: vertical; max-height: 440px; padding: 8px 10px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 10px; corner-shape: superellipse(1.43); background: var(--dsw-alias-bg-layer-1); transition: border-color .3s cubic-bezier(.2,0,0,1), background-color .3s cubic-bezier(.2,0,0,1), color .3s cubic-bezier(.2,0,0,1), padding .3s cubic-bezier(.2,0,0,1); }
+			textarea.pb-ta { resize: vertical; max-height: 440px; padding: 8px 10px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 10px; corner-shape: superellipse(1.43); background: var(--dsw-alias-bg-layer-1); transition: border-color .3s cubic-bezier(.2,0,0,1), background-color .3s cubic-bezier(.2,0,0,1), color .3s cubic-bezier(.2,0,0,1), padding .3s cubic-bezier(.2,0,0,1), margin-right .3s cubic-bezier(.2,0,0,1); }
 			/* 折叠态 textarea = 正文预览（M3-R3）：扁平无边框、灰 = 未覆盖；不可点不可聚焦。
 			   white-space:pre = 永不软换行（M3-R8 续）：内容恒为单行，长文右侧硬裁；
 			   overflow:hidden 兼杀横向滚动条（pre+默认 auto 会在行下画滚动条，M3-R9/200%缩放）；
 			   line-height 18px = 键行同款：行底墨迹（下划线）有落窗余量，16px 时被削（M3-R9）。
-			   悬停行时右侧让位 = 徽标实际自然宽（--src-w，测量管线写入，上限 280）+ 12px
-			   间隙，过渡时长与徽标 max-width 的 .3s 同曲线——文字退让与徽标展开逐帧同步
-			   （M3-R5：固定 290px 按最大宽预留，折叠徽标只显标题段时留出一大段空档） */
+			   悬停行时右侧让位 = **margin-right**（徽标实际自然宽 --src-w 上限 280 + 12px 间隙）：
+			   pre 长行的墨迹会画进 padding 区——padding-right 对可见性无效（M3-R5 教训），
+			   margin 收缩盒边界才能硬裁。.3s 同曲线与徽标 max-width 逐帧同步 */
 			.pb-editorwrap:not(.open) .pb-ta { white-space: pre; overflow: hidden; padding: 0 10px; line-height: 18px; border-color: transparent; background: 0 0; resize: none; pointer-events: none; color: var(--dsw-alias-label-tertiary); }
-			.pb-keyitem:hover .pb-keyrow.collapsed + .pb-editorwrap:not(.open) .pb-ta { padding-right: calc(min(var(--src-w, 0px), 280px) + 12px); }
+			.pb-keyitem:hover .pb-keyrow.collapsed + .pb-editorwrap:not(.open) .pb-ta { margin-right: calc(min(var(--src-w, 0px), 280px) + 12px); }
 			.pb-editorwrap:not(.open) .pb-ta.pb-overridden { color: var(--dsw-alias-label-primary); }
 			.pb-keyitem .pb-editor { cursor: default; }
 			.pb-trigger { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 13px; color: var(--dsw-alias-label-primary); background: 0 0; border: 1px solid var(--dsw-alias-border-l2); border-radius: 8px; padding: 3px 10px; cursor: pointer; }

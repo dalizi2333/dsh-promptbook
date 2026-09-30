@@ -66,7 +66,7 @@
 			   任意缩放舍入都啃不到墨迹（M3-R9 20px 在缩放变化下仍不稳，owner 令再放宽）。
 			   折叠态提示/按钮退出版流（否则被三行隐式网格平分，全部压扁） */
 			.pb-editorwrap > .pb-editor { min-height: 24px; }
-			.pb-editoractions { display: flex; gap: 8; justify-content: flex-end; }
+			.pb-editoractions { display: flex; gap: 10px; justify-content: flex-end; }
 			/* 图标动作钮（M3-R11）：28×28 实心，范式照 llm-mimo 图标钮（owner 定）。
 			   绿=保存（空覆盖合法，存空即空覆盖），黄=清除回归默认（黄绿沿用指示灯配色） */
 			.pb-iconbtn { width: 28px; height: 28px; padding: 0; border: 0; border-radius: 100%; corner-shape: superellipse(1.43); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: #fff; transition: background-color .15s ease, opacity .15s ease; }

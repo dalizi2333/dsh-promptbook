@@ -61,10 +61,10 @@
 			   在「行内预览 ↔ 下方编辑器」两个停靠位之间滑移 */
 			.pb-editorwrap { display: grid; grid-template-rows: 0fr; margin-top: -21px; margin-left: 120px; overflow: hidden; transition: grid-template-rows .28s cubic-bezier(.2,0,0,1), margin-top .28s cubic-bezier(.2,0,0,1), margin-left .28s cubic-bezier(.2,0,0,1); }
 			.pb-editorwrap.open { grid-template-rows: 1fr; margin-top: 0; margin-left: 30px; }
-			/* 编辑器自身 17px 下限：0fr 轨道的收纳终点=单行预览窗（恰好装下 16px 首行；
-			   22px 会露出软换行第二行的前 6px——M3-R7）。折叠态提示/按钮退出版流
-			   （否则被三行隐式网格平分，全部压扁） */
-			.pb-editorwrap > .pb-editor { min-height: 17px; }
+			/* 编辑器自身 18px 下限：0fr 轨道的收纳终点=单行预览窗（行盒 16 + 底 padding 2，
+			   字形底部不削；第二行字形从 ~18.5px 才开始，18px 窗仍不露——M3-R7/R8）。
+			   折叠态提示/按钮退出版流（否则被三行隐式网格平分，全部压扁） */
+			.pb-editorwrap > .pb-editor { min-height: 18px; }
 			.pb-editoractions { display: flex; gap: 8; }
 			.pb-editorwrap:not(.open) .pb-editor > :not(textarea) { display: none; }
 			textarea.pb-ta { resize: vertical; max-height: 440px; padding: 8px 10px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 10px; corner-shape: superellipse(1.43); background: var(--dsw-alias-bg-layer-1); transition: border-color .3s cubic-bezier(.2,0,0,1), background-color .3s cubic-bezier(.2,0,0,1), color .3s cubic-bezier(.2,0,0,1), padding .3s cubic-bezier(.2,0,0,1); }

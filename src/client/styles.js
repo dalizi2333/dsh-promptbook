@@ -71,10 +71,14 @@
 			   绿=保存（空覆盖合法，存空即空覆盖），黄=清除回归默认（黄绿沿用指示灯配色） */
 			.pb-iconbtn { width: 28px; height: 28px; padding: 0; border: 0; border-radius: 100%; corner-shape: superellipse(1.43); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: #fff; transition: background-color .15s ease, opacity .15s ease; }
 			.pb-iconbtn:disabled { opacity: .4; cursor: default; }
-			.pb-iconsave { background: #22C55E; }
-			.pb-iconsave:hover:not(:disabled) { background: #16A34A; }
-			.pb-iconclear { background: #EAB308; }
-			.pb-iconclear:hover:not(:disabled) { background: #CA8A04; }
+			.pb-iconsave { background: rgba(34, 197, 94, 0.35); }
+			.pb-iconsave:hover:not(:disabled) { background: #22C55E; }
+			.pb-iconsave svg path { stroke: #15803d; transition: stroke .15s ease; }
+			.pb-iconsave:hover:not(:disabled) svg path { stroke: #fff; }
+			.pb-iconclear { background: rgba(234, 179, 8, 0.35); }
+			.pb-iconclear:hover:not(:disabled) { background: #EAB308; }
+			.pb-iconclear svg path { fill: #a16207; transition: fill .15s ease; }
+			.pb-iconclear:hover:not(:disabled) svg path { fill: #fff; }
 			.pb-editorwrap:not(.open) .pb-editor > :not(textarea) { display: none; }
 			textarea.pb-ta { resize: vertical; max-height: 440px; padding: 8px 10px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 10px; corner-shape: superellipse(1.43); background: var(--dsw-alias-bg-layer-1); transition: border-color .3s cubic-bezier(.2,0,0,1), background-color .3s cubic-bezier(.2,0,0,1), color .3s cubic-bezier(.2,0,0,1), padding .3s cubic-bezier(.2,0,0,1), margin-right .3s cubic-bezier(.2,0,0,1); }
 			/* 折叠态 textarea = 正文预览（M3-R3）：扁平无边框、灰 = 未覆盖；不可点不可聚焦。

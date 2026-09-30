@@ -124,6 +124,7 @@
 			// 键行工厂：唯一 consistently-mounted 键行（collapsed/expanded 状态类，DOM 跨态复用），
 			// 来源标签（pb-source）为每键唯一常驻元素；分离由外层 wrapper/内卡的双层过渡承担。
 			const keyItem = (k, isExpanded) => {
+				const slug = k.key.replace(/[^a-zA-Z0-9]/g, "-");
 				const overridden = isOverridden(state.userEntriesJson, k.key, sel.model);
 				const traced = resolveTraced(k.key, sel.model, docs);
 				const preview = overridden ? (parseEntries(state.userEntriesJson)[k.key]?.[sel.model] ?? "") : (traced?.text ?? "");
@@ -187,9 +188,12 @@
 									"aria-label": t("clear"),
 									disabled: disabled || !overridden,
 									onClick: () => props.commitEntry(k.key, sel.model, null),
-									children: [(0, jsx.jsxs)("svg", { width: 16, height: 16, viewBox: "0 0 24 24", xmlns: "http://www.w3.org/2000/svg", "aria-hidden": true, children: [
-										(0, jsx.jsx)("path", { d: "M3 19V5a2 2 0 0 1 2-2h11.172a2 2 0 0 1 1.414.586l2.828 2.828A2 2 0 0 1 21 7.828V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z", fill: "#fff", stroke: "#fff", "stroke-width": "1.5" }),
-										(0, jsx.jsx)("path", { d: "M4.252 4v5H9M5.07 8a8 8 0 1 1-.818 6", transform: "translate(5.04 6.54) scale(0.58)", fill: "none", stroke: "#EAB308", "stroke-width": "2.25", "stroke-linecap": "round", "stroke-linejoin": "round" })
+children: [(0, jsx.jsxs)("svg", { width: 16, height: 16, viewBox: "0 0 24 24", xmlns: "http://www.w3.org/2000/svg", "aria-hidden": true, children: [
+										(0, jsx.jsx)("defs", { children: (0, jsx.jsx)("mask", { id: "pb-clear-knock-" + slug, children: [
+											(0, jsx.jsx)("rect", { width: 24, height: 24, fill: "#fff" }),
+											(0, jsx.jsx)("path", { d: "M4.252 4v5H9M5.07 8a8 8 0 1 1-.818 6", transform: "translate(5.04 6.54) scale(0.58)", fill: "none", stroke: "#000", "stroke-width": "2.25", "stroke-linecap": "round", "stroke-linejoin": "round" })
+										] }) }),
+										(0, jsx.jsx)("path", { d: "M3 19V5a2 2 0 0 1 2-2h11.172a2 2 0 0 1 1.414.586l2.828 2.828A2 2 0 0 1 21 7.828V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z", class: "pb-clearglyph", mask: "url(#pb-clear-knock-" + slug + ")" })
 									] })]
 								})
 							] })

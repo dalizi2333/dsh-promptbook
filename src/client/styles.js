@@ -59,22 +59,23 @@
 			   M3-R4：折叠窗负 margin 上提叠进键行第三列空位（margin-left 对齐键名列之后），
 			   折叠行回归单行紧凑；展开时 margin 连续过渡回编辑器位（30px/0）——同一元素
 			   在「行内预览 ↔ 下方编辑器」两个停靠位之间滑移 */
-			.pb-editorwrap { display: grid; grid-template-rows: 0fr; margin-top: -21px; margin-left: 120px; overflow: hidden; transition: grid-template-rows .28s cubic-bezier(.2,0,0,1), margin-top .28s cubic-bezier(.2,0,0,1), margin-left .28s cubic-bezier(.2,0,0,1); }
+			.pb-editorwrap { display: grid; grid-template-rows: 0fr; margin-top: -22px; margin-left: 120px; overflow: hidden; transition: grid-template-rows .28s cubic-bezier(.2,0,0,1), margin-top .28s cubic-bezier(.2,0,0,1), margin-left .28s cubic-bezier(.2,0,0,1); }
 			.pb-editorwrap.open { grid-template-rows: 1fr; margin-top: 0; margin-left: 30px; }
 			/* 编辑器自身 18px 下限：0fr 轨道的收纳终点=单行预览窗（行盒 16 + 底 padding 2，
 			   字形底部不削；第二行字形从 ~18.5px 才开始，18px 窗仍不露——M3-R7/R8）。
 			   折叠态提示/按钮退出版流（否则被三行隐式网格平分，全部压扁） */
-			.pb-editorwrap > .pb-editor { min-height: 18px; }
+			.pb-editorwrap > .pb-editor { min-height: 20px; }
 			.pb-editoractions { display: flex; gap: 8; }
 			.pb-editorwrap:not(.open) .pb-editor > :not(textarea) { display: none; }
 			textarea.pb-ta { resize: vertical; max-height: 440px; padding: 8px 10px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 10px; corner-shape: superellipse(1.43); background: var(--dsw-alias-bg-layer-1); transition: border-color .3s cubic-bezier(.2,0,0,1), background-color .3s cubic-bezier(.2,0,0,1), color .3s cubic-bezier(.2,0,0,1), padding .3s cubic-bezier(.2,0,0,1); }
 			/* 折叠态 textarea = 正文预览（M3-R3）：扁平无边框、灰 = 未覆盖；不可点不可聚焦。
-			   white-space:pre = 永不软换行（M3-R8 续）：内容恒为单行，18px 窗必然完整——
-			   行距 16px 下首行墨迹底与次行墨迹顶间距 <1px，允许换行则削底/露头不可兼得。
+			   white-space:pre = 永不软换行（M3-R8 续）：内容恒为单行，长文右侧硬裁；
+			   overflow:hidden 兼杀横向滚动条（pre+默认 auto 会在行下画滚动条，M3-R9/200%缩放）；
+			   line-height 18px = 键行同款：行底墨迹（下划线）有落窗余量，16px 时被削（M3-R9）。
 			   悬停行时右侧让位 = 徽标实际自然宽（--src-w，测量管线写入，上限 280）+ 12px
 			   间隙，过渡时长与徽标 max-width 的 .3s 同曲线——文字退让与徽标展开逐帧同步
 			   （M3-R5：固定 290px 按最大宽预留，折叠徽标只显标题段时留出一大段空档） */
-			.pb-editorwrap:not(.open) .pb-ta { white-space: pre; padding-top: 0; padding-bottom: 2px; line-height: 16px; border-color: transparent; background: 0 0; resize: none; pointer-events: none; color: var(--dsw-alias-label-tertiary); }
+			.pb-editorwrap:not(.open) .pb-ta { white-space: pre; overflow: hidden; padding: 0 10px; line-height: 18px; border-color: transparent; background: 0 0; resize: none; pointer-events: none; color: var(--dsw-alias-label-tertiary); }
 			.pb-keyitem:hover .pb-keyrow.collapsed + .pb-editorwrap:not(.open) .pb-ta { padding-right: calc(min(var(--src-w, 0px), 280px) + 12px); }
 			.pb-editorwrap:not(.open) .pb-ta.pb-overridden { color: var(--dsw-alias-label-primary); }
 			.pb-keyitem .pb-editor { cursor: default; }

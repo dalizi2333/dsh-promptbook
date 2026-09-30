@@ -2,9 +2,9 @@
 		const NS = "settings.promptbook";
 		const PB_NS = "promptbook";
 		const LLM_MIMO_NS = "llm-mimo";
+		const PKG_NAME = "@mimo-codex/dsh-promptbook";
 		const inject = ["slots", "locale", "configForms"];
 		function apply(ctx) {
-			const t = ctx.locale.bind(NS);
 			ctx.effect(() => ctx.locale.register(NS, { zh, en }), "promptbook: dictionaries");
 			const scope = ctx.configForms.get(PB_NS);
 			const mimoScope = ctx.configForms.get(LLM_MIMO_NS);
@@ -54,11 +54,12 @@
 				offMimo();
 				controller.form.dispose();
 			}, "promptbook: form subscription");
-			ctx.effect(() => ctx.configForms.whileServed([PB_NS], () => ctx.slots.inject("plugins.item", () => ctx.slots.register({
-				name: "plugins.item",
-				id: "promptbook",
-				order: 50,
-				label: () => t("title"),
+			// D21（再落地）：配置卡走 plugins.bundle.config（key=包名）——渲染在插件列表
+			// 「查看」包详情页（dsh-client-ui-plugin-manager）；plugins.item 已被官方设置页
+			// 占用（注册即进官方组，硬编码），详情页配置位只有这一个正式槽。
+			ctx.effect(() => ctx.configForms.whileServed([PB_NS], () => ctx.slots.inject("plugins.bundle.config", () => ctx.slots.register({
+				name: "plugins.bundle.config",
+				key: PKG_NAME,
 				locale: NS,
 				inject: () => ({
 					hooks: { promptbookCard: controller.store },

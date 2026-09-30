@@ -77,8 +77,8 @@ console.log("[3/4] client 卡静态形状（S3）");
 const client = readFileSync(join(root, "lib/client.js"), "utf8");
 client.includes("window.__ModuleLoader__.load") ? ok("ModuleLoader 装载形态") : bad("缺 ModuleLoader 装载");
 client.includes('"@mimo-codex/dsh-promptbook"') ? ok("装载 id = 包名") : bad("装载 id 不是包名");
-client.includes('ctx.slots.inject("plugins.item"') ? ok("plugins.item 插槽注册") : bad("缺 plugins.item 注册");
-client.includes('id: "promptbook"') ? ok("插槽条目 id = promptbook") : bad("插槽条目 id 不对");
+client.includes('ctx.slots.inject("plugins.bundle.config"') ? ok("plugins.bundle.config 插槽注册（插件详情页配置位，D21）") : bad("缺 plugins.bundle.config 注册");
+client.includes("key: PKG_NAME") ? ok("插槽 key = 包名") : bad("插槽 key 不是包名");
 client.includes('"settings.promptbook"') ? ok("词典/命名空间 NS") : bad("缺 NS settings.promptbook");
 client.includes("whileServed([PB_NS]") ? ok("whileServed 门控") : bad("缺 whileServed 门控");
 

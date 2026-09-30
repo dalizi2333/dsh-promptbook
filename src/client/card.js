@@ -137,20 +137,24 @@
 						(0, jsx.jsx)("span", { className: "pb-dot", role: "img", "aria-label": sourceTitle, style: { background: dotColorOf(traced?.source) } }),
 						(0, jsx.jsx)("span", { className: "pb-keyname", style: { fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--dsw-alias-label-primary)" }, children: k.key }),
 						// 折叠态正文暂时关闭（记账见 progress.md 遗留：正文元素待大改+截断联动）；列位保留撑住网格
-						(0, jsx.jsx)("span", {
-							style: { minWidth: 0, textAlign: "left", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
-							children: ""
-						}),
+					// 折叠态正文预览（M3-R7，关闭了整条线遗留记账的“正文元素”）：当前生效文本，
+					// 灰 = 未覆盖；展开态淡出（正文由下方编辑器接管），列位保留撑住网格过渡
+					(0, jsx.jsx)("span", {
+						className: "pb-bodytext" + (overridden ? " pb-overridden" : ""),
+						style: { minWidth: 0, textAlign: "left", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+						children: preview
+					}),
 						(0, jsx.jsxs)("span", { className: "pb-source" + (isExpanded ? " expanded" : ""), children: [
 							(0, jsx.jsx)("span", { children: `【${sourceTitle}】` }),
 							pathText ? (0, jsx.jsx)("span", { className: "pb-path", children: pathText }) : null
 						] })
 					]
 				});
-				if (!isExpanded) return line;
+				// 编辑器常驻挂载（M3-R7）：开合由 .open 切换 grid-rows 0fr↔1fr 过渡，
+				// 折叠不再瞬摘——双向都是连续动画；隐藏态 visibility 隔离聚焦与命中
 				return (0, jsx.jsxs)(jsx.Fragment, { children: [
 					line,
-					(0, jsx.jsxs)("div", { className: "pb-editorwrap", children: [(0, jsx.jsxs)("div", {
+					(0, jsx.jsxs)("div", { className: "pb-editorwrap" + (isExpanded ? " open" : ""), children: [(0, jsx.jsxs)("div", {
 						className: "pb-editor",
 						onClick: (event) => event.stopPropagation(),
 						style: { display: "grid", gap: 6 },
@@ -194,6 +198,11 @@
 						if (keyname && !keyname.matches(":hover") && getComputedStyle(keyname).boxShadow === "none") {
 							keyname.classList.toggle("pb-clipped", keyname.scrollWidth > keyname.clientWidth);
 						}
+						// 正文预览截断联动（M3-R7）：仅折叠态参与（展开态正文归编辑器，预览淡出）
+						const body = item.querySelector(".pb-bodytext");
+						if (body && !isExpItem && !body.matches(":hover") && getComputedStyle(body).boxShadow === "none") {
+							body.classList.toggle("pb-clipped", body.scrollWidth > body.clientWidth);
+						}
 						const src = item.querySelector(".pb-source");
 						if (!src) continue;
 						// 折叠徽标是瞬态显形（隐藏态 scrollWidth 恒大于 0），“截断”只对展开态有意义，
@@ -226,6 +235,10 @@
 					const keyname = item.querySelector(".pb-keyname");
 					if (keyname && !keyname.matches(":hover") && getComputedStyle(keyname).boxShadow === "none") {
 						keyname.classList.toggle("pb-clipped", keyname.scrollWidth > keyname.clientWidth);
+					}
+					const body = item.querySelector(".pb-bodytext");
+					if (body && !item.querySelector(".pb-keyrow.expanded") && !body.matches(":hover") && getComputedStyle(body).boxShadow === "none") {
+						body.classList.toggle("pb-clipped", body.scrollWidth > body.clientWidth);
 					}
 					// 折叠徽标不参与截断判定（M2-R6，同 measureAll）
 					const src = item.querySelector(".pb-source");

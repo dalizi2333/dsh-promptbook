@@ -52,9 +52,16 @@
 			.pb-endrow .pb-eggtext { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); text-align: center; margin: 0; font-size: 10px; color: var(--dsw-alias-label-caption); white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .2s ease; }
 			.pb-endrow.pb-eggshow .pb-eggtext { opacity: 1; }
 			@keyframes pb-card-in { from { transform: translateY(-4px); } to { transform: none; } }
-			.pb-editorwrap { display: grid; grid-template-rows: 1fr; margin-left: 30px; animation: pb-unwrap .28s cubic-bezier(.2,0,0,1); overflow: hidden; }
+			/* 展开/折叠双向连续过渡（M3-R7）：编辑器常驻挂载，grid-rows 0fr↔1fr 过渡；
+			   visibility 延迟翻转——折叠动画播完才真正隐藏（顺带隔离聚焦/命中） */
+			.pb-editorwrap { display: grid; grid-template-rows: 0fr; margin-left: 30px; overflow: hidden; visibility: hidden; transition: grid-template-rows .28s cubic-bezier(.2,0,0,1), visibility 0s .28s; }
+			.pb-editorwrap.open { grid-template-rows: 1fr; visibility: visible; transition: grid-template-rows .28s cubic-bezier(.2,0,0,1), visibility 0s; }
 			.pb-editorwrap > .pb-editor { min-height: 0; }
-			@keyframes pb-unwrap { from { grid-template-rows: 0fr; } }
+			/* 折叠态正文预览（M3-R7）：第三列常驻；灰 = 未覆盖（rowsHint 语义）；截断联动同键名 */
+			.pb-bodytext { padding: 0 8px; margin: -1px 0; border: 1px solid transparent; border-radius: 8px; color: var(--dsw-alias-label-tertiary); transition: opacity .26s cubic-bezier(.2,0,0,1); }
+			.pb-bodytext.pb-overridden { color: var(--dsw-alias-label-primary); }
+			.pb-keyrow.expanded .pb-bodytext { opacity: 0; pointer-events: none; }
+			.pb-keyitem:hover .pb-keyrow.collapsed .pb-bodytext.pb-clipped { position: relative; z-index: 1; width: max-content; min-width: 100%; border-color: var(--dsw-alias-border-l2); background: var(--dsw-alias-bg-module-platform); box-shadow: 0 10px 28px rgba(0,0,0,.18); }
 			textarea.pb-ta { resize: vertical; max-height: 440px; padding: 8px 10px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 10px; corner-shape: superellipse(1.43); background: var(--dsw-alias-bg-layer-1); }
 			.pb-keyitem .pb-editor { cursor: default; }
 			.pb-trigger { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 13px; color: var(--dsw-alias-label-primary); background: 0 0; border: 1px solid var(--dsw-alias-border-l2); border-radius: 8px; padding: 3px 10px; cursor: pointer; }

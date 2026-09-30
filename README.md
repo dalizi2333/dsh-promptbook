@@ -4,6 +4,8 @@
 
 `@mimo-codex/dsh-promptbook` 是 [DeepSeek Harness](https://github.com/deepseek-ai)（DSH）0.2.0-rc.1 的插件：把「同一个键、按会话实际路由的模型取哪份文本」做成一条**资源包分层解析链**，并把解析结果注入系统提示词与工具描述。
 
+> **⚠️ 状态**：注入与服务面已可用；**设置页 GUI 尚未正式完工**——视觉与交互仍在迭代打磨（当前分支 `feat/gui-acceptance`），随时可能调整。
+
 ## 功能
 
 | 面孔 | 内容 |

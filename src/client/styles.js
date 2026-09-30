@@ -26,7 +26,9 @@
 			.pb-source .pb-path { display: inline; max-width: 0; opacity: 0; overflow: hidden; font-family: var(--dsw-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace); color: var(--dsw-alias-label-tertiary); transition: max-width .3s cubic-bezier(.2,0,0,1), opacity .2s ease; }
 			.pb-source.expanded .pb-path { max-width: 300px; opacity: 1; }
 			.pb-source.pb-clipped { border: 1px solid transparent; border-radius: 8px; }
-			.pb-source.pb-clipped:hover { position: relative; z-index: 2; width: max-content; padding: 2px 8px; margin: -3px -9px; border-color: var(--dsw-alias-border-l2); background: var(--dsw-alias-bg-module-platform); box-shadow: 0 10px 28px rgba(0,0,0,.18); }
+			/* 弹卡只属展开态徽标（真被卡内缘裁剪时悬停读全文）；折叠徽标是瞬态显形，
+			   pb-clipped 不再点亮（M2-R6），杜绝指针蹭到右缘就翻脸成浮牌 */
+			.pb-keyrow.expanded .pb-source.pb-clipped:hover { position: relative; z-index: 2; width: max-content; padding: 2px 8px; margin: -3px -9px; border-color: var(--dsw-alias-border-l2); background: var(--dsw-alias-bg-module-platform); box-shadow: 0 10px 28px rgba(0,0,0,.18); }
 			.pb-editor:focus-within { outline: 1px solid var(--dsw-alias-state-business-primary); outline-offset: 4px; border-radius: 8px; }
 			.pb-fillcard { background: var(--dsw-alias-bg-module-platform); border-radius: 12px; padding: 10px 12px; display: grid; gap: 8px; align-content: start; }
 			/* 整行元素（wrapper 承担缝合 margin）+ 整行卡片（展开时在 wrapper 内额外下移 + 圆角过渡） */

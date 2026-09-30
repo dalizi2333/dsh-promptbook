@@ -189,18 +189,25 @@
 				if (!state.available) return;
 				const measureAll = () => {
 					for (const item of document.querySelectorAll(".pb-keyitem")) {
-						for (const el of [item.querySelector(".pb-keyname"), item.querySelector(".pb-source")]) {
-							if (!el || el.matches(":hover")) continue; // 自悬浮（弹出态）测量失真，跳过
-							if (getComputedStyle(el).boxShadow !== "none") continue; // 弹卡开着：max-content 盒测量失真，离场重测
-							el.classList.toggle("pb-clipped", el.scrollWidth > el.clientWidth);
+						const isExpItem = !!item.querySelector(".pb-keyrow.expanded");
+						const keyname = item.querySelector(".pb-keyname");
+						if (keyname && !keyname.matches(":hover") && getComputedStyle(keyname).boxShadow === "none") {
+							keyname.classList.toggle("pb-clipped", keyname.scrollWidth > keyname.clientWidth);
+						}
+						const src = item.querySelector(".pb-source");
+						if (!src) continue;
+						// 折叠徽标是瞬态显形（隐藏态 scrollWidth 恒大于 0），“截断”只对展开态有意义，
+						// 否则 pb-clipped 常开、指针蹭到右缘就误触弹卡（M2-R6）
+						if (isExpItem && !src.matches(":hover") && getComputedStyle(src).boxShadow === "none") {
+							src.classList.toggle("pb-clipped", src.scrollWidth > src.clientWidth);
 						}
 						// P2 绕过分支（F9）：寻址元素在展开态若 总宽 ≤ 半卡，则完全无视裁剪/弹卡
-						const src = item.querySelector(".pb-source");
-						if (src && isExpItem) {
+						// （isExpItem 在归档版未定义——ReferenceError 令测量管线死在首个键项，fit 从未生效）
+						if (isExpItem) {
 							const halfCard = item.clientWidth * 0.5;
 							src.classList.toggle("pb-fit", src.scrollWidth <= halfCard);
 							if (src.classList.contains("pb-fit")) src.classList.remove("pb-clipped");
-						} else if (src) {
+						} else {
 							src.classList.remove("pb-fit");
 						}
 					}
@@ -216,10 +223,14 @@
 					document.querySelector(".pb-endrow")?.classList.toggle("pb-eggshow", !!eggdot);
 					const item = event.target?.closest?.(".pb-keyitem");
 					if (!item) return;
-					for (const el of [item.querySelector(".pb-keyname"), item.querySelector(".pb-source")]) {
-						if (!el || el.matches(":hover")) continue;
-						if (getComputedStyle(el).boxShadow !== "none") continue; // 弹卡开着：离场重测
-						el.classList.toggle("pb-clipped", el.scrollWidth > el.clientWidth);
+					const keyname = item.querySelector(".pb-keyname");
+					if (keyname && !keyname.matches(":hover") && getComputedStyle(keyname).boxShadow === "none") {
+						keyname.classList.toggle("pb-clipped", keyname.scrollWidth > keyname.clientWidth);
+					}
+					// 折叠徽标不参与截断判定（M2-R6，同 measureAll）
+					const src = item.querySelector(".pb-source");
+					if (src && item.querySelector(".pb-keyrow.expanded") && !src.matches(":hover") && getComputedStyle(src).boxShadow === "none") {
+						src.classList.toggle("pb-clipped", src.scrollWidth > src.clientWidth);
 					}
 				};
 				document.addEventListener("mouseover", clip);

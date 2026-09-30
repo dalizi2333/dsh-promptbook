@@ -46,9 +46,8 @@
 			   垂直靠 flex align-items 居中（高度 14，点盒 11）。 */
 			.pb-endrow .pb-eggdot { flex: none; width: 5px; height: 5px; padding: 3px; border-radius: 50%; background: var(--dsw-alias-label-caption); background-clip: content-box; opacity: 0; transition: opacity .2s ease; }
 			.pb-endrow.pb-eggshow .pb-eggdot { opacity: .55; }
-			.pb-endrow .pb-eggtext { margin-left: 8px; font-size: 10px; color: var(--dsw-alias-label-caption); white-space: nowrap; opacity: 0; transition: opacity .2s ease; }
-			/* 假行独立成卡：彩蛋文本绝对定位水平居中（translateY 只是定位、隐显两态恒定） */
-			.pb-endrow.pb-separated .pb-eggtext { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); text-align: center; margin: 0; pointer-events: none; }
+			/* 彩蛋文本两态统一：绝对定位横向居中（translateY 只是定位、隐显两态恒定） */
+			.pb-endrow .pb-eggtext { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); text-align: center; margin: 0; font-size: 10px; color: var(--dsw-alias-label-caption); white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .2s ease; }
 			.pb-endrow.pb-eggshow .pb-eggtext { opacity: 1; }
 			@keyframes pb-card-in { from { transform: translateY(-4px); } to { transform: none; } }
 			.pb-editorwrap { display: grid; grid-template-rows: 1fr; margin-left: 30px; animation: pb-unwrap .28s cubic-bezier(.2,0,0,1); overflow: hidden; }

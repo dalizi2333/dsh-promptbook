@@ -305,7 +305,7 @@
 							}, k.key);
 						}),
 						(0, jsx.jsx)("div", {
-							className: "pb-fillcard pb-endrow" + (expIdx === state.keyOptions.length - 1 ? " pb-separated" : ""),
+							className: "pb-fillcard pb-endrow",
 							// 附着态 -6px：恰好吃满末键卡 6px 底 padding，不进内容（M2-R3）——
 							// 文本到卡底总间距 = 假行可见 14px，与历史形态一致
 							style: expIdx === state.keyOptions.length - 1

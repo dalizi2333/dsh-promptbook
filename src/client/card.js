@@ -2,106 +2,325 @@
 		function PromptbookCard(props) {
 			const { t } = props;
 			const state = props.usePromptbookCard((snapshot) => snapshot);
+			// —— 视图态：下拉浮层（供应商/模型）为卡级本地状态 ——
+			const [pop, setPop] = react.useState(null);
+			const [popClosing, setPopClosing] = react.useState(false);
+			const popRef = react.useRef(null);
+			const triggerRefs = react.useRef({});
+			const bodyRef = react.useRef(null);
+			const [hoverBox, setHoverBox] = react.useState(null);
+			const [hoverInstant, setHoverInstant] = react.useState(false);
+			const hoverOnRef = react.useRef(false);
+			const hoverKeyRef = react.useRef(null);
+			const hoverRectRef = react.useRef(null);
+			const hoverOffAtRef = react.useRef(0);
+			const closePop = () => {
+				if (!pop || popClosing) return;
+				setPopClosing(true);
+				window.setTimeout(() => {
+					setPop(null);
+					setPopClosing(false);
+				}, 200);
+			};
+			// 对位：激活行钉在触发钮的屏幕高度上（头向上弹，其余向下弹）——llm-mimo 同款。
+			const placePop = () => {
+				const card = popRef.current;
+				const trigger = triggerRefs.current[pop];
+				if (!card || !trigger) return;
+				const tr = trigger.getBoundingClientRect();
+				const head = card.querySelector(".pb-pophead");
+				const active = card.querySelector(".pb-popline.active");
+				const activeOffset = active ? active.offsetTop : (head?.offsetHeight ?? 22);
+				card.style.top = `${Math.round(tr.top - activeOffset)}px`;
+				card.style.left = `${Math.round(tr.left - 6)}px`;
+				card.style.width = `${Math.round(tr.width + 12)}px`;
+			};
+			react.useEffect(() => {
+				if (!pop) return;
+				const onDocMousedown = (event) => {
+					if (popRef.current?.contains(event.target)) return;
+					if (triggerRefs.current[pop]?.contains(event.target)) return;
+					closePop();
+				};
+				const reposition = () => placePop();
+				document.addEventListener("mousedown", onDocMousedown, true);
+				window.addEventListener("resize", reposition);
+				document.addEventListener("scroll", reposition, true);
+				return () => {
+					document.removeEventListener("mousedown", onDocMousedown, true);
+					window.removeEventListener("resize", reposition);
+					document.removeEventListener("scroll", reposition, true);
+				};
+			}, [pop, popClosing]);
+			react.useLayoutEffect(() => {
+				if (pop) placePop();
+			}, [pop]);
+			react.useEffect(() => {
+				if (!pop) return;
+				const timer = window.setTimeout(() => placePop(), 260);
+				return () => window.clearTimeout(timer);
+			}, [pop]);
+			// 【暂时关闭】旅行悬浮框：缝合卡重构后落框几何需重校，待展开过渡定稿再开。
+			const PB_TRAVEL_FRAME = false;
+			react.useEffect(() => {
+				if (!PB_TRAVEL_FRAME || !state.available) return;
+				const body = bodyRef.current;
+				if (!body) return;
+				const measure = (el) => ({ top: el.offsetTop, left: el.offsetLeft, width: el.offsetWidth, height: el.offsetHeight, radius: 10, on: true });
+				const sameRect = (a, b) => !!a && !!b && Math.abs(a.top - b.top) < 0.1 && Math.abs(a.left - b.left) < 0.1 && Math.abs(a.width - b.width) < 0.1 && Math.abs(a.height - b.height) < 0.1;
+				const resolveSpot = (el) => {
+					const spot = el?.closest?.(".pb-keyitem");
+					return spot && body.contains(spot) ? spot : null;
+				};
+				const push = (rect, animate) => {
+					if (hoverOnRef.current && !animate && sameRect(hoverRectRef.current, rect)) return;
+					hoverRectRef.current = rect;
+					if (!hoverOnRef.current) {
+						hoverOnRef.current = true;
+						setHoverInstant(true);
+						setHoverBox(rect);
+						requestAnimationFrame(() => requestAnimationFrame(() => setHoverInstant(false)));
+						return;
+					}
+					setHoverInstant(!animate);
+					setHoverBox(rect);
+				};
+				const applyHover = (el) => {
+					const spot = resolveSpot(el);
+					if (!spot) {
+						if (hoverOnRef.current) {
+							hoverOffAtRef.current = Date.now();
+							hoverOnRef.current = false;
+							setHoverBox((prev) => prev && { ...prev, on: false });
+						}
+						hoverKeyRef.current = null;
+						return;
+					}
+					const keyChanged = hoverKeyRef.current !== spot;
+					hoverKeyRef.current = spot;
+					const rect = measure(spot);
+					if (!hoverOnRef.current && hoverRectRef.current && Date.now() - hoverOffAtRef.current < 200) {
+						hoverOnRef.current = true;
+						hoverRectRef.current = rect;
+						setHoverInstant(false);
+						setHoverBox(rect);
+						return;
+					}
+					push(rect, keyChanged);
+				};
+				const over = (event) => applyHover(event.target);
+				document.addEventListener("mouseover", over);
+				return () => document.removeEventListener("mouseover", over);
+			}, [state.available]);
 			if (props.view === "summary") return t("description");
+			if (!state.available) return (0, jsx.jsx)("p", { role: "status", style: NOTICE_STYLE.tertiary, children: t("unavailable") });
+			// 卡面 = 编辑主流程；systemKey/overrides 是管道配置，留在 Config 契约层（D22）。
 			const disabled = !state.writable;
 			const hosted = state.hosted;
-			const keyOptions = state.keyOptions;
 			const sel = state.selection;
-			const draft = state.draft;
-			const currentText = sel.key && sel.model ? (parseEntries(state.entriesJson)[sel.key]?.[sel.model] ?? "") : "";
-			return (0, jsx.jsxs)(primitives.SettingsForm, {
-				labels: {
-					unavailable: t("unavailable"),
-					readOnly: t("readOnly"),
-					saveFailed: t("saveFailed"),
-					save: t("save"),
-					saving: t("saving")
-				},
-				state,
-				onSave: props.save,
-				onDiscard: props.discard,
-				children: [
-					(0, jsx.jsx)(primitives.SettingsValueField, {
-						id: "plugin-config-promptbook-systemkey",
-						label: t("systemKey"),
-						hint: t("systemKeyHint"),
-						overriddenLabel: t("overridden"),
-						resetLabel: t("reset"),
-						invalidLabel: t("invalidNumber"),
-						disabled,
-						...state.systemKey,
-						onEdit: (text) => props.edit("systemKey", text),
-						onReset: () => props.resetField("systemKey")
-					}),
-					(0, jsx.jsxs)("fieldset", {
-						style: { border: "1px solid var(--dsw-alias-border-l2)", borderRadius: 8, padding: "8px 12px", display: "grid", gap: 8 },
+			const currentProvider = hosted.find((p) => p.provider === sel.provider);
+			const modelDisplay = currentProvider?.models.find((m) => m.id === sel.model)?.name ?? sel.model;
+			const docs = { registryJson: state.registryJson, entriesJson: state.entriesJson, layersJson: state.layersJson, model: sel.model };
+			// 键行工厂：唯一 consistently-mounted 键行（collapsed/expanded 状态类，DOM 跨态复用），
+			// 来源标签（pb-source）为每键唯一常驻元素；分离由外层 wrapper/内卡的双层过渡承担。
+			const keyItem = (k, isExpanded) => {
+				const overridden = isOverridden(state.userEntriesJson, k.key, sel.model);
+				const traced = resolveTraced(k.key, sel.model, docs);
+				const preview = overridden ? (parseEntries(state.userEntriesJson)[k.key]?.[sel.model] ?? "") : (traced?.text ?? "");
+				const sourceTitle = overridden ? t("sourceGui") : sourceTitleText(traced?.source, modelDisplay, t);
+				const rowDraft = state.drafts[k.key] ?? "";
+				const pathText = sourcePathOf(traced?.source, state.layersJson);
+				const line = (0, jsx.jsxs)("div", {
+					className: "pb-keyrow " + (isExpanded ? "expanded" : "collapsed"),
+					style: { display: "grid", gridTemplateColumns: isExpanded ? "14px 50% minmax(0, 1fr) minmax(0, auto)" : "14px 100px 1fr auto", gap: 8, alignItems: "center", minWidth: 0 },
+					children: [
+						(0, jsx.jsx)("span", { className: "pb-dot", role: "img", "aria-label": sourceTitle, style: { background: dotColorOf(traced?.source) } }),
+						(0, jsx.jsx)("span", { className: "pb-keyname", style: { fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--dsw-alias-label-primary)" }, children: k.key }),
+						// 折叠态正文暂时关闭（记账见 progress.md 遗留：正文元素待大改+截断联动）；列位保留撑住网格
+						(0, jsx.jsx)("span", {
+							style: { minWidth: 0, textAlign: "left", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+							children: ""
+						}),
+						(0, jsx.jsxs)("span", { className: "pb-source" + (isExpanded ? " expanded" : ""), children: [
+							(0, jsx.jsx)("span", { children: `【${sourceTitle}】` }),
+							pathText ? (0, jsx.jsx)("span", { className: "pb-path", children: pathText }) : null
+						] })
+					]
+				});
+				if (!isExpanded) return line;
+				return (0, jsx.jsxs)(jsx.Fragment, { children: [
+					line,
+					(0, jsx.jsxs)("div", { className: "pb-editorwrap", children: [(0, jsx.jsxs)("div", {
+						className: "pb-editor",
+						onClick: (event) => event.stopPropagation(),
+						style: { display: "grid", gap: 6 },
 						children: [
-							(0, jsx.jsx)("legend", { style: { fontSize: 13, padding: "0 6px" }, children: t("entries") }),
-							hosted.length === 0
-								? (0, jsx.jsx)("div", { style: { fontSize: 13 }, children: t("noHosted") })
-								: (0, jsx.jsxs)("div", { style: { display: "flex", gap: 8, flexWrap: "wrap" }, children: [
-										(0, jsx.jsxs)("select", {
-											"aria-label": t("provider"),
-											value: sel.provider,
-											onChange: (event) => props.pick("provider", event.target.value),
-											children: hosted.map((p) => (0, jsx.jsx)("option", { value: p.provider, children: `${p.label} (${p.models.length})` }, p.provider))
-										}),
-										(0, jsx.jsxs)("select", {
-											"aria-label": t("model"),
-											value: sel.model,
-											onChange: (event) => props.pick("model", event.target.value),
-											children: (hosted.find((p) => p.provider === sel.provider)?.models ?? []).map((m) => (0, jsx.jsx)("option", { value: m.id, children: m.name }, m.id))
-										})
-									] }),
-							(0, jsx.jsxs)("select", {
-								"aria-label": t("key"),
-								value: sel.key,
-								onChange: (event) => props.pick("key", event.target.value),
-								children: [
-									(0, jsx.jsx)("option", { value: "", children: "—" }),
-									...keyOptions.map((k) => (0, jsx.jsx)("option", { value: k.key, children: k.key === k.label ? k.key : `${k.key} · ${k.label}` }, k.key))
-								]
-							}),
-							(0, jsx.jsxs)("textarea", {
-								"aria-label": t("draft"),
-								placeholder: currentText === "" ? "" : currentText,
-								value: draft,
+							(0, jsx.jsx)("textarea", {
+								className: "pb-ta",
+								"aria-label": `${k.key} · ${t("draft")}`,
+								placeholder: overridden ? "" : preview,
+								value: rowDraft,
 								rows: 4,
-								onChange: (event) => props.pick("draft", event.target.value),
-								style: { width: "100%", font: "inherit" }
+								onChange: (event) => props.pick("draft", k.key, event.target.value)
 							}),
+							(0, jsx.jsx)("p", { style: NOTICE_STYLE.tertiary, children: t("draftHint") }),
 							(0, jsx.jsxs)("div", { style: { display: "flex", gap: 8 }, children: [
 								(0, jsx.jsx)(primitives.Button, {
 									variant: "secondary",
-									disabled: disabled || !sel.key || !sel.model,
-									onClick: () => props.commitEntry(sel.key, sel.model, draft),
+									disabled: disabled || rowDraft === "",
+									onClick: () => props.commitEntry(k.key, sel.model, rowDraft),
 									children: t("set")
 								}),
 								(0, jsx.jsx)(primitives.Button, {
 									variant: "secondary",
-									disabled: disabled || !isOverridden(state.userEntriesJson, sel.key, sel.model),
-									onClick: () => props.commitEntry(sel.key, sel.model, null),
+									disabled: disabled || !overridden,
+									onClick: () => props.commitEntry(k.key, sel.model, null),
 									children: t("clear")
-								}),
-								sel.key && sel.model && isOverridden(state.userEntriesJson, sel.key, sel.model)
-									? (0, jsx.jsx)("span", { style: { fontSize: 12, alignSelf: "center" }, children: t("overridden") })
-									: null
+								})
 							] })
 						]
+					})] })
+				] });
+			};
+			const expIdx = state.keyOptions.findIndex((k) => k.key === sel.expanded);
+			// 截断判定封装在键元素生命周期里：每次 React 提交后全量重算（展开/折叠/换模型/
+			// 列宽变化都会触发）。悬浮中的元素只加不撤（弹出态测量失真，撤类会引发震荡）。
+			react.useEffect(() => {
+				if (!state.available) return;
+				const measureAll = () => {
+					for (const item of document.querySelectorAll(".pb-keyitem")) {
+						for (const el of [item.querySelector(".pb-keyname"), item.querySelector(".pb-source")]) {
+							if (!el || el.matches(":hover")) continue; // 自悬浮（弹出态）测量失真，跳过
+							if (getComputedStyle(el).boxShadow !== "none") continue; // 弹卡开着：max-content 盒测量失真，离场重测
+							el.classList.toggle("pb-clipped", el.scrollWidth > el.clientWidth);
+						}
+						// P2 绕过分支（F9）：寻址元素在展开态若 总宽 ≤ 半卡，则完全无视裁剪/弹卡
+						const src = item.querySelector(".pb-source");
+						if (src && isExpItem) {
+							const halfCard = item.clientWidth * 0.5;
+							src.classList.toggle("pb-fit", src.scrollWidth <= halfCard);
+							if (src.classList.contains("pb-fit")) src.classList.remove("pb-clipped");
+						} else if (src) {
+							src.classList.remove("pb-fit");
+						}
+					}
+				};
+				const raf = requestAnimationFrame(measureAll);
+				// 展开/折叠过渡（缝线、解包、路径展开）落定后补测一次，消除瞬态误判；
+				// 字体加载会改变文本宽度——就绪后也重算一次。
+				const settle = window.setTimeout(measureAll, 400);
+				document.fonts?.ready?.then(() => measureAll()).catch(() => {});
+				const clip = (event) => {
+					// 假行彩蛋显形：触发区缩到小点本身
+					const eggdot = event.target?.closest?.(".pb-eggdot");
+					document.querySelector(".pb-endrow")?.classList.toggle("pb-eggshow", !!eggdot);
+					const item = event.target?.closest?.(".pb-keyitem");
+					if (!item) return;
+					for (const el of [item.querySelector(".pb-keyname"), item.querySelector(".pb-source")]) {
+						if (!el || el.matches(":hover")) continue;
+						if (getComputedStyle(el).boxShadow !== "none") continue; // 弹卡开着：离场重测
+						el.classList.toggle("pb-clipped", el.scrollWidth > el.clientWidth);
+					}
+				};
+				document.addEventListener("mouseover", clip);
+				document.addEventListener("mouseout", clip);
+				return () => {
+					cancelAnimationFrame(raf);
+					window.clearTimeout(settle);
+					document.removeEventListener("mouseover", clip);
+					document.removeEventListener("mouseout", clip);
+				};
+			}, [state.available, state.keyOptions, state.selection]);
+			const popLine = (label, meta, active, onPick, key) => (0, jsx.jsxs)("button", {
+				type: "button",
+				className: "pb-popline" + (active ? " active" : ""),
+				onClick: onPick,
+				children: [(0, jsx.jsx)("span", { title: label, style: { overflow: "hidden", textOverflow: "ellipsis" }, children: label }), meta ? (0, jsx.jsx)("span", { className: "pb-popmeta", children: meta }) : null]
+			}, key);
+			const popOptions = pop === "provider"
+				? hosted.map((p) => popLine(p.label, `${p.models.length}`, p.provider === sel.provider, () => {
+					props.pick("provider", "", p.provider);
+					closePop();
+				}, p.provider))
+				: (currentProvider?.models ?? []).map((m) => popLine(m.name, null, m.id === sel.model, () => {
+					props.pick("model", "", m.id);
+					closePop();
+				}, m.id));
+			return (0, jsx.jsxs)("div", { style: { display: "grid", gap: 12 }, children: [
+				(0, jsx.jsx)("style", { children: PB_STYLES }),
+				!state.writable ? (0, jsx.jsx)("p", { role: "status", style: NOTICE_STYLE.secondary, children: t("readOnly") }) : null,
+				(0, jsx.jsxs)("div", { ref: bodyRef, className: "pb-body", style: { position: "relative", display: "grid" }, children: [
+					(0, jsx.jsx)("div", {
+						className: "pb-hoverbox" + (hoverBox?.on ? " on" : "") + (hoverInstant ? " instant" : ""),
+						style: hoverBox ? { top: hoverBox.top, left: hoverBox.left, width: hoverBox.width, height: hoverBox.height, borderRadius: hoverBox.radius } : undefined
 					}),
-					(0, jsx.jsx)(primitives.SettingsValueField, {
-						id: "plugin-config-promptbook-overrides",
-						label: t("overridesPath"),
-						hint: t("overridesPathHint"),
-						overriddenLabel: t("overridden"),
-						resetLabel: t("reset"),
-						invalidLabel: t("invalidNumber"),
-						disabled,
-						...state.overrides,
-						onEdit: (text) => props.edit("overrides", text),
-						onReset: () => props.resetField("overrides")
-					})
-				]
-			});
+					hosted.length === 0 ? (0, jsx.jsx)("div", { style: { fontSize: 13 }, children: t("noHosted") }) : (0, jsx.jsxs)(jsx.Fragment, { children: [
+						(0, jsx.jsxs)("div", { className: "pb-fillcard pb-stitch", style: { borderRadius: expIdx === 0 ? "12px" : "12px 12px 0 0" }, children: [
+							(0, jsx.jsx)("div", { className: "pb-chead", children: t("entries") }),
+							(0, jsx.jsxs)("div", { className: "pb-pickrow", style: { display: "flex", gap: 8, flexWrap: "wrap" }, children: [
+								(0, jsx.jsxs)("button", {
+									type: "button",
+									ref: (el) => (triggerRefs.current.provider = el),
+									className: "pb-trigger",
+									"aria-label": t("provider"),
+									"aria-expanded": pop === "provider",
+									onClick: () => setPop((prev) => (prev === "provider" ? null : "provider")),
+									children: [
+										(0, jsx.jsx)("span", { children: `${currentProvider?.label ?? sel.provider} (${currentProvider?.models.length ?? 0})` }),
+										(0, jsx.jsx)("span", { className: "pb-caret", children: "▾" })
+									]
+								}),
+								(0, jsx.jsxs)("button", {
+									type: "button",
+									ref: (el) => (triggerRefs.current.model = el),
+									className: "pb-trigger",
+									"aria-label": t("model"),
+									"aria-expanded": pop === "model",
+									onClick: () => setPop((prev) => (prev === "model" ? null : "model")),
+									children: [
+										(0, jsx.jsx)("span", { children: modelDisplay }),
+										(0, jsx.jsx)("span", { className: "pb-caret", children: "▾" })
+									]
+								})
+							] }),
+							(0, jsx.jsx)("p", { style: NOTICE_STYLE.tertiary, children: t("rowsHint") })
+						] }),
+						...state.keyOptions.map((k, j) => {
+							const isExp = j === expIdx;
+							const groupStart = isExp || (expIdx !== -1 && j === expIdx + 1);
+							const groupEnd = j === state.keyOptions.length - 1 || isExp || j + 1 === expIdx;
+							// 缝合体系：同底色卡 margin 0 即无缝；负 margin 重叠仅用于结尾假行
+							// 盖住末键圆角区——故末键 wrapper 预留 14px 底 padding 作重叠缓冲
+							const marginTop = j === 0 ? (isExp ? 8 : -12) : (groupStart ? 8 : -12);
+							const borderRadius = groupStart && groupEnd ? "12px" : groupStart ? "12px 12px 0 0" : groupEnd ? "0px" : "0px";
+							return (0, jsx.jsx)("div", {
+								className: "pb-rowwrap",
+								style: { marginTop: `${marginTop}px` },
+								children: (0, jsx.jsx)("div", {
+									className: "pb-fillcard pb-keycard pb-keyitem",
+									style: { borderRadius },
+									onClick: () => props.pick("expand", k.key, isOverridden(state.userEntriesJson, k.key, sel.model) ? (parseEntries(state.userEntriesJson)[k.key]?.[sel.model] ?? "") : ""),
+									children: keyItem(k, isExp)
+								}, k.key)
+							}, k.key);
+						}),
+						(0, jsx.jsx)("div", {
+							className: "pb-fillcard pb-endrow" + (expIdx === state.keyOptions.length - 1 ? " pb-separated" : ""),
+							style: expIdx === state.keyOptions.length - 1
+								? { marginTop: "8px", borderRadius: "12px" }
+								: { marginTop: "-12px", borderRadius: "0 0 12px 12px" },
+							children: [
+								(0, jsx.jsx)("span", { className: "pb-eggdot" }),
+								(0, jsx.jsx)("span", { className: "pb-eggtext", children: "用户也不知道要放什么但必须得有这个假行" })
+							]
+						}, "pb-endrow"),
+					] })
+				] }),
+				state.failed ? (0, jsx.jsx)("p", { role: "status", style: NOTICE_STYLE.error, children: t("saveFailed") }) : null,
+				(pop || popClosing) ? (0, jsx.jsxs)("div", { ref: popRef, className: "pb-pop" + (popClosing ? " closing" : ""), role: "listbox", children: [
+					(0, jsx.jsx)("div", { className: "pb-pophead", children: pop === "provider" ? t("provider") : t("model") }),
+					...popOptions
+				] }) : null
+			] });
 		}
 		//#endregion

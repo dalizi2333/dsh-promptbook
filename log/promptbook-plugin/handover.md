@@ -68,6 +68,7 @@ speedprint 工具、测速校准样本、GUI 卡官方先例（web-search client
 **未做**：
 1. **渲染层视觉验收**——清单：①设置→插件→出现"提示词簿"卡 ②供应商/模型二级下拉=llm-mimo 托管面（含 customProviders 显示名）③键下拉含种子键、选键+模型出文本域 ④"保存该模型的覆盖"往返成功 ⑤已覆盖徽标 + "清除该覆盖" ⑥systemKey/overrides 字段覆盖/重置 ⑦llm-mimo 停用时降级提示。
 2. **S4 core-web 端到端**：core-web profile `dsh plugin add` 本仓 → web 会话验证 GUI 卡（视觉）+ 注入链（新会话首条 system/message 对账 + speedprint 三重指纹）+ 非 hosted 模型透传抽查。
+3. **键行展开/收起动画修复（GUI 美化项）**：owner 指出的三缺陷（P1 键名展开先回缩后放宽、P2 寻址元素跳变/从 "prof" 裁点起步、P3 收起路径离散消失 + 右缘无过渡 + 下偏）已完整取证——现象 · 组件事实（F1–F10）· 帧级数据见 [`keyrow-anim-evidence.md`](keyrow-anim-evidence.md)，照其 §四 修复方向落码（与「裁剪-弹出统一封装」遗留记账合流，勿补丁式绕开；双态触发语义是既有设计勿动）。
 
 ## §5 开工顺序（S4 起）
 

@@ -19,7 +19,12 @@ await import("../lib/client.js");
 assert.equal(loaded?.id, "@mimo-codex/dsh-promptbook", "ModuleLoader id");
 
 const stubs = {
-	react: {},
+	react: {
+		useState: (v) => [typeof v === "function" ? v() : v, () => {}],
+		useRef: (v) => ({ current: v }),
+		useEffect: () => {},
+		useLayoutEffect: () => {}
+	},
 	"react/jsx-runtime": { jsx: () => null, jsxs: () => null, Fragment: "F" },
 	"@deepseek-ai/dsh-client-ui-primitives": {
 		SettingsForm: () => null,
@@ -45,8 +50,8 @@ const scenario = (n, fn) => {
 const K = "persona.minimal.prefix";
 
 console.log("[模块面]");
-scenario("1 工厂导出契约：NS/apply/inject + 五个纯逻辑函数", () => {
-	for (const key of ["NS", "apply", "inject", "parseEntries", "mergeEntry", "isOverridden", "keyOptionsFromSnapshot", "hostedOptionsFromLlMimoSnapshot"]) {
+scenario("1 工厂导出契约：NS/apply/inject + 纯逻辑函数", () => {
+	for (const key of ["NS", "apply", "inject", "parseEntries", "mergeEntry", "isOverridden", "keyOptionsFromSnapshot", "hostedOptionsFromLlMimoSnapshot", "modelCandidates", "resolveTraced", "layersFromSnapshot"]) {
 		assert.notEqual(client[key], undefined, `缺导出 ${key}`);
 	}
 	assert.equal(client.NS, "settings.promptbook");
@@ -86,7 +91,7 @@ scenario("5 isOverridden：以 user 层 entriesJson 为准", () => {
 });
 
 console.log("[选项派生]");
-scenario("6 keyOptionsFromSnapshot：registryJson（含 host 镜像的种子键）→ 排序键表", () => {
+scenario("6 keyOptionsFromSnapshot：registryJson（含 host 镜像的种子键）→ 排序键表（带兜底文本）", () => {
 	const opts = client.keyOptionsFromSnapshot({
 		registryJson: JSON.stringify({
 			[K]: { label: "人设", fallback: "F" },
@@ -96,9 +101,46 @@ scenario("6 keyOptionsFromSnapshot：registryJson（含 host 镜像的种子键�
 		})
 	});
 	assert.deepEqual(opts, [
-		{ key: K, label: "人设" },
-		{ key: "tool.x", label: "tool.x" }
+		{ key: K, label: "人设", fallback: "F" },
+		{ key: "tool.x", label: "tool.x", fallback: "T" }
 	]);
+});
+
+scenario("8 modelCandidates：逐级剥末段 + default 去重", () => {
+	assert.deepEqual(client.modelCandidates("mimo-v2.6-flash"), ["mimo-v2.6-flash", "mimo-v2.6", "mimo", "default"]);
+	assert.deepEqual(client.modelCandidates("mimo"), ["mimo", "default"]);
+	assert.deepEqual(client.modelCandidates(""), ["default"]);
+	assert.deepEqual(client.modelCandidates(undefined), ["default"]);
+});
+
+scenario("9 resolveTraced：候选优先序与 host resolveOverride 一致（gui/compile/model/provider/fallback）", () => {
+	const registryJson = JSON.stringify({ [K]: { label: "人设", fallback: "兜底句" } });
+	// GUI 层精确候选命中
+	let docs = { registryJson, entriesJson: JSON.stringify({ [K]: { "mimo-v2.6-flash": "GUI 文本" } }), layersJson: "{}", model: "mimo-v2.6-flash" };
+	assert.deepEqual(client.resolveTraced(K, "mimo-v2.6-flash", docs), { text: "GUI 文本", source: { layer: "gui" } });
+	// 同候选下 GUI 压过编译文档
+	docs = { registryJson, entriesJson: JSON.stringify({ [K]: { "mimo-v2.6-flash": "GUI 文本" } }), layersJson: JSON.stringify({ __overrides__: { [K]: { "mimo-v2.6-flash": "编译文本" } } }), model: "mimo-v2.6-flash" };
+	assert.deepEqual(client.resolveTraced(K, "mimo-v2.6-flash", docs), { text: "GUI 文本", source: { layer: "gui" } });
+	// 合并文档（GUI/编译）全候选优先于包层：GUI 家族候选压过包层精确候选
+	docs = { registryJson, entriesJson: JSON.stringify({ [K]: { "mimo": "GUI 家族文本" } }), layersJson: JSON.stringify({ "mimo-v2.6-flash": { [K]: "包层精确文本" } }), model: "mimo-v2.6-flash" };
+	assert.deepEqual(client.resolveTraced(K, "mimo-v2.6-flash", docs), { text: "GUI 家族文本", source: { layer: "gui" } });
+	// 编译文档精确候选压过包层家族（合并文档先走完）
+	docs = { registryJson, entriesJson: "{}", layersJson: JSON.stringify({ __overrides__: { [K]: { "mimo-v2.6-flash": "编译精确文本" } }, mimo: { [K]: "包层家族文本" } }), model: "mimo-v2.6-flash" };
+	assert.deepEqual(client.resolveTraced(K, "mimo-v2.6-flash", docs), { text: "编译精确文本", source: { layer: "compile" } });
+	// 包层家族命中（mimo.json 种子人设场景）
+	docs = { registryJson, entriesJson: "{}", layersJson: JSON.stringify({ mimo: { [K]: "家族人设" } }), model: "mimo-v2.6-flash" };
+	assert.deepEqual(client.resolveTraced(K, "mimo-v2.6-flash", docs), { text: "家族人设", source: { layer: "provider", id: "mimo" } });
+	// 全链未命中 → 注册表兜底
+	docs = { registryJson, entriesJson: "{}", layersJson: "{}", model: "mimo-v2.6-flash" };
+	assert.deepEqual(client.resolveTraced(K, "mimo-v2.6-flash", docs), { text: "兜底句", source: { layer: "fallback" } });
+	// 键未注册 → undefined
+	assert.equal(client.resolveTraced("no.such.key", "mimo", { registryJson, entriesJson: "{}", layersJson: "{}" }), void 0);
+});
+
+scenario("10 layersFromSnapshot：畸形/非串容错", () => {
+	assert.deepEqual(client.layersFromSnapshot({ layersJson: "not json" }), {});
+	assert.deepEqual(client.layersFromSnapshot({}), {});
+	assert.deepEqual(client.layersFromSnapshot({ layersJson: '{"mimo":{"k":"v"}}' }), { mimo: { k: "v" } });
 });
 
 scenario("7 hostedOptionsFromLlMimoSnapshot：主路由 + customProviders 两级派生，未加载→[]", () => {
@@ -124,4 +166,4 @@ scenario("7 hostedOptionsFromLlMimoSnapshot：主路由 + customProviders 两级
 	assert.equal(client.hostedOptionsFromLlMimoSnapshot(live)[0].label, "Acme 网关");
 });
 
-console.log(passed === 7 ? "\nPASS：7/7 场景全绿" : `\nFAIL：${7 - passed} 项未过`);
+console.log(passed === 10 ? "\nPASS：10/10 场景全绿" : `\nFAIL：${10 - passed} 项未过`);

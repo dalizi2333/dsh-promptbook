@@ -51,6 +51,8 @@ cordis.patch.yml 顶层 `promptbook` 行（全部 volatile 字符串，双形态
 | `registryJson` | 注册表扩展 JSON 文本 `{key: {label, fallback}}`（GUI 键清单也从这里合成） |
 | `entriesJson` | GUI 编辑的逐模型文本 `{key: {model: text}}`（用户层最高） |
 | `overrides` | 编译产物文档路径（`set()` 落点；低于 entriesJson） |
+| `systemKey` | hosted 模型装配时注入哪个键的文本（默认 persona.minimal.prefix；管道配置，不上卡） |
+| `layersJson` | 卡面分层镜像（D23）：overrides 文档（`__overrides__` 键）+ models/ 包层按候选 id 原样打包；host 于 boot 与 set() 刷新，卡内 resolveTraced 重放解析链——**与 resolveOverride 的层序实现必须逐分支一致** |
 
 ## 四、仓库纪律
 

@@ -37,7 +37,7 @@
 			const raw = typeof snapshotValue?.registryJson === "string" ? safeParse(snapshotValue.registryJson) : {};
 			return Object.entries(raw ?? {})
 				.filter(([key, def]) => !key.startsWith("$") && def && typeof def === "object" && typeof def.fallback === "string")
-				.map(([key, def]) => ({ key, label: typeof def.label === "string" && def.label !== "" ? def.label : key }))
+				.map(([key, def]) => ({ key, label: typeof def.label === "string" && def.label !== "" ? def.label : key, fallback: def.fallback }))
 				.sort((a, b) => a.key.localeCompare(b.key));
 		}
 		function safeParse(text) {
@@ -46,6 +46,71 @@
 			} catch {
 				return {};
 			}
+		}
+		/** 卡面镜像里 overrides 文档的保留键（与 host LAYERS_MIRROR_OVERRIDES_KEY 一致）。 */
+		const LAYERS_OVERRIDES_KEY = "__overrides__";
+		/**
+		 * 候选链（host modelCandidates 的卡面副本）：逐级剥末段 → "default" 去重。
+		 * 契约：与 host 侧实现逐分支一致（AGENTS §三），改动必须两边同步。
+		 */
+		function modelCandidates(model) {
+			const chain = [];
+			let current = String(model ?? "");
+			while (current !== "") {
+				chain.push(current);
+				const cut = current.lastIndexOf("-");
+				if (cut <= 0) break;
+				current = current.slice(0, cut);
+			}
+			chain.push("default");
+			return [...new Set(chain)];
+		}
+		/** 卡面分层镜像解包（畸形/非串 → 空对象）。 */
+		function layersFromSnapshot(snapshotValue) {
+			return typeof snapshotValue?.layersJson === "string" ? safeParse(snapshotValue.layersJson) : {};
+		}
+		/**
+		 * 卡面解析链重放（D23）：候选优先序与 host resolveOverride 逐分支一致——
+		 * 每候选先 GUI entriesJson 后编译 overrides 文档（镜像 __overrides__），候选走完
+		 * 再包层 models/<候选>（跳过 default），全链未命中落注册表兜底。
+		 * 返回 {text, source}；source.layer ∈ gui|compile|model|provider|fallback。
+		 */
+		function resolveTraced(key, model, docs) {
+			const registry = typeof docs?.registryJson === "string" ? safeParse(docs.registryJson) : {};
+			const entry = registry?.[key];
+			if (!entry || typeof entry.fallback !== "string") return void 0;
+			const gui = typeof docs?.entriesJson === "string" ? safeParse(docs.entriesJson) : {};
+			const layers = layersFromSnapshot({ layersJson: docs?.layersJson });
+			const overridesDoc = layers[LAYERS_OVERRIDES_KEY];
+			const chain = modelCandidates(model);
+			for (const candidate of chain) {
+				if (gui[key]?.[candidate] !== void 0) return { text: gui[key][candidate], source: { layer: "gui" } };
+				if (overridesDoc && overridesDoc[key]?.[candidate] !== void 0) return { text: overridesDoc[key][candidate], source: { layer: "compile" } };
+			}
+			for (const candidate of chain) {
+				if (candidate === "default") break;
+				const layerDoc = layers[candidate];
+				if (layerDoc && typeof layerDoc === "object" && layerDoc[key] !== void 0) {
+					return { text: layerDoc[key], source: { layer: candidate === String(model ?? "") ? "model" : "provider", id: candidate } };
+				}
+			}
+			return { text: entry.fallback, source: { layer: "fallback" } };
+		}
+		/** 镜像路径元数据键（与 host LAYERS_MIRROR_PATHS_KEY 一致）。 */
+		const LAYERS_PATHS_KEY = "__paths__";
+		/**
+		 * 来源 → 文件路径（来源标签的可展开层）：
+		 * 模型/家族层 = 资源包 models/<候选>.json；编译层 = overrides 文档；
+		 * 兜底 = registry.json；GUI 层 = 实例 profile 的 cordis.patch.yml（settings 控制器落点，S4 实证）。
+		 */
+		function sourcePathOf(source, layersJson) {
+			const paths = layersFromSnapshot({ layersJson })[LAYERS_PATHS_KEY];
+			if (!source) return null;
+			if (source.layer === "model" || source.layer === "provider") return paths?.layersDir ? `${paths.layersDir}/${source.id}.json` : `models/${source.id}.json`;
+			if (source.layer === "compile") return paths?.overridesPath ?? null;
+			if (source.layer === "fallback") return "registry.json";
+			if (source.layer === "gui") return "cordis.patch.yml（实例 profile）";
+			return null;
 		}
 		/**
 		 * 从 llm-mimo 配置快照提取供应商/模型二级选项（与其设置卡同源：主路由 modelsJson

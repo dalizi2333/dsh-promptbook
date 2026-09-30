@@ -6,7 +6,7 @@
 import { strict as assert } from "node:assert";
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { createPromptbook, modelCandidates, asDoc } from "../lib/index.js";
+import { createPromptbook, modelCandidates, asDoc, buildLayersMirror, LAYERS_MIRROR_OVERRIDES_KEY } from "../lib/index.js";
 
 let passed = 0;
 const scenario = async (n, fn) => {
@@ -159,4 +159,32 @@ await scenario("15 resolveOverride：GUI entries（含 default 键）也算命�
 	assert.equal(pb.resolveOverride(K, "任意模型"), "GUI默认");
 });
 
-console.log(passed === 15 ? "\nPASS：15/15 场景全绿" : `\nFAIL：${15 - passed} 项未过`);
+await scenario("16 buildLayersMirror：包层按候选 id 打包 + overrides 文档进保留键", () => {
+	const p = tempPack({
+		registry: { [K]: { label: "人设", fallback: "FALLBACK" } },
+		layers: { mimo: { [K]: "家族人设" }, "mimo-v2.6-flash": { [K]: "精确人设" } },
+		config: { overrides: join(process.env.TMPDIR ?? "/tmp", "does-not-exist.json") }
+	});
+	const mirror = buildLayersMirror(p.layersDir, p.config.overrides);
+	assert.deepEqual(mirror.mimo, { [K]: "家族人设" });
+	assert.deepEqual(mirror["mimo-v2.6-flash"], { [K]: "精确人设" });
+	assert.equal(mirror[LAYERS_MIRROR_OVERRIDES_KEY], undefined);
+	// overrides 文件存在时进镜像
+	const overridesPath = join(p.dir, "overrides.json");
+	writeFileSync(overridesPath, JSON.stringify({ [K]: { "mimo-v2.6-flash": "编译文本" } }));
+	const mirror2 = buildLayersMirror(p.layersDir, overridesPath);
+	assert.deepEqual(mirror2[LAYERS_MIRROR_OVERRIDES_KEY], { [K]: { "mimo-v2.6-flash": "编译文本" } });
+});
+
+await scenario("17 refreshLayersMirror：set() 落盘后 config.layersJson 同步刷新", async () => {
+	const base = tempPack({ registry: { [K]: { label: "人设", fallback: "FALLBACK" } }, layers: { mimo: { [K]: "家族人设" } } });
+	const p = { ...base, config: { overrides: join(base.dir, "overrides.json"), registryJson: "{}", layersJson: "{}", entriesJson: "{}" } };
+	const pb = createPromptbook(p);
+	assert.equal(p.config.layersJson, "{}");
+	pb.set(K, "mimo-v2.6-flash", "编译文本");
+	const mirror = JSON.parse(p.config.layersJson);
+	assert.deepEqual(mirror[LAYERS_MIRROR_OVERRIDES_KEY], { [K]: { "mimo-v2.6-flash": "编译文本" } });
+	assert.deepEqual(mirror.mimo, { [K]: "家族人设" });
+});
+
+console.log(passed === 17 ? "\nPASS：17/17 场景全绿" : `\nFAIL：${17 - passed} 项未过`);

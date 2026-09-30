@@ -18,7 +18,7 @@
 dsh-promptbook/                 # 插件包本体（S0 已立骨架）
 ├── package.json                # @mimo-codex/dsh-promptbook v0.1.0（exports/peerDeps/dsh.bundle/dsh.client）
 ├── lib/index.js                # host 入口（S0 占位：provide("promptbook") 服务桩）
-├── lib/client.js               # 浏览器模块桩（S3 填 plugins.item 卡）
+├── lib/client.js               # 浏览器模块（S3 卡；D21 迁 plugins.bundle.config 槽）
 ├── cordis.patch.yml            # 自挂载条目（照 dsh-llm-mimo 模式）
 ├── README.md / AGENTS.md / LICENSE   # 公共说明 + 接口契约 + MIT
 └── log/promptbook-plugin/      # 本计划唯一事实来源
@@ -49,7 +49,7 @@ dsh-promptbook/                 # 插件包本体（S0 已立骨架）
 | 面孔 | 内容 | 机制 |
 | --- | --- | --- |
 | 功能面·注入 | 按模型换系统提示词（原 persona 职能）+ 按模型换工具描述 | `ctx.on("system-prompt/assemble")` 瀑布（主通道，GUI 可见）；`ctx.llmMimo.registerPromptSource` 兜底 |
-| 功能面·编辑 | GUI 设置卡（键列表 + 供应商/模型二级下拉 + 逐键文本框 + 清除断层） | `ctx.slots.inject("plugins.item", …)`（照官方 web-search 先例）+ `ConfigForm("settings.promptbook")` + `ctx.configForms.whileServed` |
+| 功能面·编辑 | GUI 设置卡（键列表 + 供应商/模型二级下拉 + 逐键文本框 + 清除断层） | `ctx.slots.inject("plugins.bundle.config", key=包名 …)`（官方契约：plugins.item 被官方设置页占用；voice-input 同款先例）+ `ConfigForm("settings.promptbook")` + `ctx.configForms.whileServed` |
 | 服务面 | 分层 resolve（模型→供应商→默认）供未来消费方（R6 编译器等） | `ctx.provide("promptbook")` |
 
 **插件级依赖 `@mimo-codex/dsh-llm-mimo`**（cordis 依赖保证先启动；`inject: ["llmMimo"]`）。
@@ -96,7 +96,7 @@ dsh --profile <profile> --dump-config | grep -A2 promptbook    # 组合树断言
 | resolve 链 | 10 场景逻辑测试（分层命中/断层回溯/registry 兜底） | node 直跑单测（移植自旧基线，无 cordis 依赖） |
 | 注入通道 | headless 冒烟：**mock llmMimo**（名单+registerPromptSource 记录）+ mock `session.requestHeader` → 真 dsh-system-prompt 事件基建（随 `@deepseek-ai/dsh` CLI 自带，CI 可得）触发 `system-prompt/assemble` → 断言 hosted 模型的 system 段被替换/tools 描述被改、非 hosted 原样透传 | node 直跑（**真 llm-mimo 不进 CI**——其安装需宿主补丁，干净 runner 装不出真身，D15；真身集成 = 本机 020 实例 S4） |
 | 卡逻辑层 | 下拉数据源=托管名单、键列表=registry、ConfigForm set/unset 序列、断层清除 | **卡的数据/状态逻辑与 JSX 渲染分离**，逻辑层进单测 |
-| 卡静态 | client bundle 含 `plugins.item` 注册、NS/键名拼写 | 构建后静态断言 |
+| 卡静态 | client bundle 含 `plugins.bundle.config` 注册（key=包名）、NS/键名拼写 | 构建后静态断言 |
 | 配置往返 | settings.promptbook namespace 写→读回环、volatile 形态 | headless cordis + schemastery 校验 |
 | 端到端 | 首条即对/家族正确/不串会话 | speedprint 三重指纹 + 会话轨迹 `system/message` 文件级对账（**不依赖看 GUI**） |
 | **CI（第一道门）** | **可安装性**：push/PR 必跑 `.github/workflows/ci.yml`——模块级+静态检查（`npm run verify:install`）+ 干净 runner 上 `dsh plugin add` + `--dump-config` 组合断言；CLI 钉 `@deepseek-ai/dsh@0.2.0-rc.1`（npm 已有 rc.2，防漂移） | GitHub Actions（链路已本机彩排，见 progress S0.3） |

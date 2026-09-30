@@ -7,6 +7,7 @@
 
 | 日期 | 阶梯 | 做了什么 | 验证结果 | 遗留 |
 | --- | --- | --- | --- | --- |
+| 2026-09-30 | GUI 美化·取证 📋 | **键行展开/收起动画三缺陷取证落档**（owner GUI 会话指出，纯文档改动）：P1 键名展开先回缩后放宽（弹卡瞬时撤除 F1/F3 + grid 列宽 .3s ramp F4 两段叠加）；P2 寻址元素跳变+从 "prof" 裁点起步（absolute→流内离散跳变 F7 + pb-path display 离散 F6 + max-width 过渡叠跑）；P3 收起路径一帧消失/右缘无过渡/下偏 ~14px（F6 / 收起态 transition 缺 max-width F7 / translate(-50%) 居中混入入场 transform F8）。组件事实 F1–F10 + 帧级实测全量落进 [`keyrow-anim-evidence.md`](keyrow-anim-evidence.md) | 取证 = 60fps 逐帧差分 + 暗像素 bbox 量化（展开 24 / 收起 23 帧），代码事实与帧数据双向吻合；`lib/client.js` 零改动 | 修复交后续代理：方向见 evidence §四（与下方「裁剪-弹出统一封装」遗留记账合流）；evidence §五留 1 处像素级未决疑点（f5 裁点 42px 差距） |
 | 2026-09-30 | 发布前 #3+#4 ✅ | **透传语义（D20）**：新增 `resolveOverride`（只认本地化命中，不落 fallback；`resolve` 服务面语义不变）——注入两通道与 tool.* 全部改走 override 命中判定，无命中透传官方；**种子人设**：`models/mimo.json` 携带 mimo 家族 Coding Agent 文本随包分发 | 单测 15/15 + 10/10 + 7/7（场景5 改透传断言、新增 14/15 override 场景）；**开箱探针**：020rc2 core-headless 新会话（mimo-v2.6-flash，零用户配置）系统提示词 = 种子人设 ✓；非 hosted 透传沿用 ec4a9f22 实证 | 发布前剩：GUI 美化会话、npm 发布（版本号 owner 定） |
 | 2026-09-30 | S3 ✅ S4 ✅ 收官 | **GUI 会话视觉验收完成**（结论：功能全过、观感待美化——owner 已排专门 GUI 会话）；其工作树修复落账：卡投影补 `form.field("systemKey"/"overrides")`（shell() 不含字段投影，官方字段原本渲染空）+ `form.actions().edit` / `form.save()` API 纠偏 + commit 后刷新 store——**门全绿后入库**。**S4 端到端证据（020rc2 core-web，三会话）**：①`aaa6d24f`（mimo-v2.6-flash）系统提示词 = 卡保存的覆盖文本（卡→entriesJson→新会话首条注入全链闭环）②`ec4a9f22`（deepseek-flash）系统提示词 = harness 官方句（非 hosted 透传）③rc.2 双标记探针（前记）；speedprint 三证两会话全 ✓；**volatile 实测**：GUI 保存的 entriesJson 在 profile patch 物化为规范 JSON 字符串（旧 object 坑 rc.2 未复现，兼容代码保留无害） | 全链门 PASS；speedprint aaa6d24f 48.5 tok/s ✓ / ec4a9f22 自报一致 ✓ | **发布前事项见 handover §4**（GUI 美化会话、npm 发布、默认接管语义决策、种子内容） |
 | 2026-09-30 | S3渲染✅ + S4 ✅ | **渲染层视觉验收 + S4 core-web 端到端收官**（视觉会话执行；跨零点）。core-web 经官方 `dsh plugin add` symlink 直链装入；浏览器实操过完 §4-1 七条清单。**过程中抓出并修复三个真 bug**：① host `Config.systemKey` 漏标 `.volatile()`——rc.2 设置表单只投影 volatile 字段 ⇒ 字段恒空 + 写入被 host 以 "not volatile" 拒绝（保存链整体报废的根因）；② client `commitEntry` 调用不存在的 `form.edit()`（应为 `form.actions().edit()`），TypeError 被 React 静默吞掉 ⇒ 保存零网络报文；③ 卡投影缺 `form.field()` 字段状态 ⇒ systemKey/overrides 显示层永远空。修法全部照 web-search 官方样板。注入链验收：卡内保存 persona.minimal.prefix × mimo-v2.6-flash 覆盖 → 新会话 → **轨迹 GUI + session.v4 文件 system/message 逐字节 = 覆盖文本**；speedprint 三证一致（名义=自报=mimo-v2.6-flash，48.5 tok/s mimo 档）；非托管透传抽查：DeepSeek-V41-Flash 会话 system = DSH 默认人设（未触碰），路由 deepseek-official ✓ | 视觉清单①卡出现②二级下拉（含 customProviders 显示名 + 供应商切换模型过滤）③种子键+文本域④保存往返（双向落盘 profile cordis.patch.yml）⑤已覆盖徽标+清除⑥systemKey/overrides 字段覆盖/恢复默认周期⑦llm-mimo 停用→卡干净注销、恢复→完整回归——全过；`npm run ci` 本地全链 PASS（verify-install + 30 场景单测 + 干净 DSH_HOME 彩排） | **改动未 commit（等 owner 过目）**：lib/index.js 一行（volatile）+ lib/client.js 两处（commitEntry/投影）；模型自报与实际人设不符的 flash 自述不可靠现象再次实锤（文件级对账为准，与 §2-4 历史一致） |
@@ -28,3 +29,16 @@
 | 2026-09-29 | S0 | 仓库建立（git init，main，未 commit）；`log/promptbook-plugin/` 四件套落盘（README/handover/progress/decisions）。设计定稿来源：与 owner 的多轮收敛（基线切换、单插件合并、名单来自 llm-mimo、pending route、GUI 插槽研究） | 侦察类验证：020 实例 bundles 现状确认；llm-mimo AGENTS/HANDOFF 契约与冒烟记录核对；0.2.0-rc.1 的 `dsh-system-prompt`/`dsh-session`/`dsh-client-ui-slots`/ConfigForm 类型核实；`plugins.item` 官方先例（web-search client.js:307）定位 | S1 未开工；GUI 视觉验收依赖换模型；`settings.promptbook` namespace 细节待 S3 实现期核对 |
 | 2026-09-29 | S0.1 | 远程化修订（owner：仓库要推远程）：新增 `.gitignore`（node_modules/ + `log/**/local-env.md`）；本机路径全部收进 `local-env.md`（不入库）；README/handover 重写为零绝对路径；新增程序化检验设计（README §3.6，decisions D9 收敛视觉范围、D10 路径纪律） | `git check-ignore` 确认 local-env.md 被规则命中；提交面 = .gitignore + 四份文档；四文档绝对路径 grep 归零 | 远程仓未建（GitHub dalizi2333 名下，建名待 owner）；S1 未开工 |
 | 2026-09-29 | S0-前置 | （另一会话完成，背景记录）R5 排障终局：速度指纹工具 speedprint 交付（dsh-tool-lab，本机路径见 local-env.md，三样本 180/73/43 tok/s 校准通过）；全库 106 会话三重指纹检定 = 路由零串台、人设文本错配；旧 HANDOFF §0-§0.3 事实修正落盘 | 证据会话：a5f719d3（mimo-pro+Flash 人设）、e217d93b 等 sys=2 三连（step2 起人设消失）、yield* 崩溃四会话（24e8e1a4/87cb6495/c20b8700/d95bb23b） | 无（历史已固化进旧 HANDOFF） |
+<!-- GUI 会话 09-30 追记（键行重构进行中，未提交） -->
+**遗留记账（键行折叠态正文）**：值预览列（1fr）当前无截断判定/弹出联动——正文元素计划大改（裁剪/弹卡/来源跟随待设计），届时与键名、寻址元素共用同一套"裁剪-弹出"生命周期封装（measureAll 已按元素数组扩展，加入即可）。
+
+<!-- 09-30 深夜追记：键行视觉迭代中止，状态移交（下一个会话从这里接手） -->
+**⚠️ 键行视觉迭代中止·状态移交（09-30 深夜）**：owner 判定撤回后的状态仍是错误的，需新会话接手修复。当前盘面参数快照（lib/client.js，测试 37 场景全绿但视觉未验收）：
+- `.pb-keyitem { padding: 0 10px; }`（折叠紧凑态）+ `.pb-keyitem.pb-roomy` 已退役，改为 `:has(.pb-keyrow.expanded) { padding: 10px }`（展开卡自身补偿）
+- `.pb-endrow { height: 20px; padding: 0 12px 0 14px; display: flex; align-items: center; }`（填充延伸块，flex 居中，悬浮不长高）
+- 键间 marginTop：合并态 **0**、组间分离 8、展开首键 8（重叠体系已废）
+- 假行 inline marginTop：合并 **-12px**（+圆角 0 0 12/12）、分离 8px（+圆角 12）
+- 彩蛋点：`left 12px; top 4px; translateX(8px)`（flex 项，悬浮滑至指示灯轴）
+- 彩蛋文本：flex 项 `margin-left 8px; margin-top -2px`，悬浮 translateX(10→0)
+已知问题（owner 截图指认）：行距与展开卡的衔接仍不对，具体待新会话实测量化。疑似：wrapper paddingBottom 已退役但假行 -12 缝合仍吃末键卡的内容区（键卡 pb 现为 6/0——**此前 18px 缓冲被本轮撤回误删**，恢复 14~18px 或重排缝合或为解）。
+工具事故记录：本轮多次用 Bash+python 内嵌脚本改文件，产生半截写入与文件状态错位（client.js 曾被清空），owner 已明令禁止——后续会话修复时**只允许 ZCode 原生 Edit 工具**。

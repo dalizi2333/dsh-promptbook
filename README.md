@@ -2,9 +2,9 @@
 
 > 按模型本地化系统提示词与工具描述的提示词簿插件：资源包分层解析（模型→供应商→默认），装配层注入仅对 llm-mimo 托管模型生效，设置页逐键编辑。
 
-`@mimo-codex/dsh-promptbook` 是 [DeepSeek Harness](https://github.com/deepseek-ai)（DSH）0.2.0-rc.1 的插件：把「同一个键、按会话实际路由的模型取哪份文本」做成一条**资源包分层解析链**，并把解析结果注入系统提示词与工具描述。
+`@mimo-codex/dsh-promptbook` 是 [DeepSeek Harness](https://github.com/deepseek-ai)（DSH）0.2.0-rc.1 / rc.2 的插件：把「同一个键、按会话实际路由的模型取哪份文本」做成一条**资源包分层解析链**，并把解析结果注入系统提示词与工具描述。
 
-> **⚠️ 状态**：注入与服务面已可用；**设置页 GUI 尚未正式完工**——视觉与交互仍在迭代打磨（当前分支 `feat/gui-acceptance`），随时可能调整。
+> **状态**：注入、服务面与设置页 GUI 均已可用（GUI 验收已合并 main）。
 
 ## 功能
 
@@ -28,7 +28,7 @@ dsh plugin --profile <name> add github:dalizi2333/dsh-promptbook
 
 ## 开发
 
-- 计划与交接文档（唯一事实来源）：[`log/promptbook-plugin/`](log/promptbook-plugin/README.md)——设计权威、决策记录（D1–D11）、进度与接手入口；
+- 计划与交接文档（唯一事实来源）：[`log/promptbook-plugin/`](log/promptbook-plugin/README.md)——设计权威、决策记录（D1–D23）、进度与接手入口；
 - 接口契约：[`AGENTS.md`](AGENTS.md)；
 - 程序化检验优先：resolve 单测、headless cordis 注入冒烟、卡逻辑层单测、配置往返、轨迹文件对账；纯渲染层才需要视觉验收。
 

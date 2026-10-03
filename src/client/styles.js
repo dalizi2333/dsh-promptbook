@@ -28,9 +28,11 @@
 			   展开态隐藏——展开/收起 affordance 由编辑器收起钮接管 */
 			.pb-source .pb-caret { display: none; color: var(--dsw-alias-label-tertiary); font-size: 12px; margin-right: 4px; }
 			.pb-keyrow.collapsed .pb-source .pb-caret { display: inline; }
-			/* 收起钮（M3-R18，llm-mimo collapsebtn 同款）：透明底 squircle 字形钮。
-			   展开态行头不再点击收起（keyitem onClick 仅折叠态挂），收起只走本钮 */
-			.pb-collapsebtn { border: none; background: transparent; color: var(--dsw-alias-label-secondary); cursor: pointer; border-radius: 100%; corner-shape: superellipse(1.43); width: 56px; height: 28px; padding: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; }
+			/* 收起钮（M3-R18/R18b）：「保存+清除两钮连体」形状——宽=两钮+间距（28+10+28=66），
+			   高=单钮 28；圆角固定 14px（=28 钮 100% 半径被半宽截断的有效值）+ 同款
+			   superellipse(1.43)，端头几何与两圆钮一致。展开态行头不再点击收起
+			   （keyitem onClick 仅折叠态挂），收起只走本钮 */
+			.pb-collapsebtn { border: none; background: transparent; color: var(--dsw-alias-label-secondary); cursor: pointer; border-radius: 14px; corner-shape: superellipse(1.43); width: 66px; height: 28px; padding: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; flex: none; }
 			.pb-collapsebtn:hover { background: var(--dsw-alias-interactive-bg-hover); }
 			.pb-keyrow.collapsed .pb-source { transform: translateX(16px); opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .26s cubic-bezier(.2,0,0,1), max-width .3s cubic-bezier(.2,0,0,1); }
 			.pb-keyitem:hover .pb-keyrow.collapsed .pb-source { opacity: 1; transform: translateX(0); max-width: 280px; pointer-events: auto; }

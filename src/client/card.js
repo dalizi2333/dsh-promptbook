@@ -99,16 +99,21 @@
 			const transferAtRef = react.useRef(0);
 			const applyHover = (el) => {
 				let spot = resolveSpot(el);
+				// 展开卡只有收起钮本身触发悬浮（R18f）。钮外分两种（R18h）：
+				// 卡内钮外=真实悬停非触发区，立即熄框（不吃转移豁免——绿框位仍亮即此漏）；
+				// 卡外=离场或转移后的浏览器 hover 重算，吃 400ms 豁免
+				let forceOff = false;
 				if (spot) {
-					// 展开卡只有收起钮本身触发悬浮（R18f owner 定：钮外间距再大也不连续悬浮），
-					// 钮外区域等同离场
 					const row = spot.querySelector(".pb-keyrow");
-					if (row?.classList.contains("expanded") && !el?.closest?.(".pb-collapsebtn")) spot = null;
+					if (row?.classList.contains("expanded") && !el?.closest?.(".pb-collapsebtn")) {
+						spot = null;
+						forceOff = true;
+					}
 				}
 				if (!spot) {
 					// 转移后 400ms 内不熄框（R18f）：收卡瞬间 DOM 变化触发浏览器 hover 重算，
 					// 指针下方已无键卡——mouseover 的关框会抢先吃掉刚转移回来的框
-					if (hoverOnRef.current && Date.now() - transferAtRef.current > 400) {
+					if (hoverOnRef.current && (forceOff || Date.now() - transferAtRef.current > 400)) {
 						hoverOffAtRef.current = Date.now();
 						hoverOnRef.current = false;
 						setHoverBox((prev) => prev && { ...prev, on: false });

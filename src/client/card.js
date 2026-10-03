@@ -60,15 +60,22 @@
 				const timer = window.setTimeout(() => placePop(), 260);
 				return () => window.clearTimeout(timer);
 			}, [pop]);
-			// 旅行悬浮框（M3-R18c 恢复 / R18d 形态校准）：独立圆角条——矩形四周内收
-			// （横 8 / 竖 4），圆角固定 10，不随缝合卡缘（owner：llm-mimo 是单独圆角，
-			// 不是整卡染色）；层序对齐 llm-mimo——框 z2 盖卡面，动作钮 z3 豁免（styles 同步）。
+			// 旅行悬浮框（M3-R18c 恢复 / R18d 独立圆角条 / R18e 纵向贴合）：横向内收 8、
+			// 圆角固定 10，不随缝合卡缘；纵向折叠行以 keyrow 内容线为基准上下各放 3px
+			// （键卡盒下缘带编辑器残留流量，按卡盒取框会偏下且过高——owner 实测），
+			// 展开态=整卡内收 8/4；层序对齐 llm-mimo——框 z2 盖卡面，动作钮 z3 豁免。
 			const PB_TRAVEL_FRAME = true;
 			react.useEffect(() => {
 				if (!PB_TRAVEL_FRAME || !state.available) return;
 				const body = bodyRef.current;
 				if (!body) return;
-				const measure = (el) => ({ top: el.offsetTop + 4, left: el.offsetLeft + 8, width: el.offsetWidth - 16, height: el.offsetHeight - 8, radius: 10, on: true });
+				const measure = (el) => {
+					const row = el.querySelector(".pb-keyrow");
+					if (row && !row.classList.contains("expanded")) {
+						return { top: row.offsetTop - 3, left: el.offsetLeft + 8, width: el.offsetWidth - 16, height: row.offsetHeight + 6, radius: 10, on: true };
+					}
+					return { top: el.offsetTop + 4, left: el.offsetLeft + 8, width: el.offsetWidth - 16, height: el.offsetHeight - 8, radius: 10, on: true };
+				};
 				const sameRect = (a, b) => !!a && !!b && Math.abs(a.top - b.top) < 0.1 && Math.abs(a.left - b.left) < 0.1 && Math.abs(a.width - b.width) < 0.1 && Math.abs(a.height - b.height) < 0.1;
 				const resolveSpot = (el) => {
 					const spot = el?.closest?.(".pb-keyitem");

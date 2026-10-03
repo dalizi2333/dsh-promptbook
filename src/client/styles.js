@@ -8,9 +8,10 @@
 		 */
 		const PB_STYLES = `
 			.pb-scope { position: relative; }
-			/* 旅行悬浮框（M3-R18c 恢复）：z2 盖在卡面上（llm-mimo hoverbox 同款层序），
-			   落框圆角逐矩形读键卡 computed border-radius（缝合分组随卡角）；动作钮 z3 豁免 */
-			.pb-hoverbox { position: absolute; z-index: 2; pointer-events: none; box-sizing: border-box; background: var(--dsw-alias-interactive-bg-hover); corner-shape: superellipse(1.43); border-radius: 8px; opacity: 0; transition: top .26s cubic-bezier(.2,0,0,1), left .26s cubic-bezier(.2,0,0,1), width .26s cubic-bezier(.2,0,0,1), height .26s cubic-bezier(.2,0,0,1), opacity .15s ease; }
+			/* 旅行悬浮框（M3-R18c 恢复 / R18d 校准）：z2 盖在卡面上（llm-mimo hoverbox
+			   同款层序）；落框 = 独立圆角条（矩形内收横8/竖4、固定 10px 圆角），浮于卡上
+			   不与缝合卡缘合并；动作钮 z3 豁免 */
+			.pb-hoverbox { position: absolute; z-index: 2; pointer-events: none; box-sizing: border-box; background: var(--dsw-alias-interactive-bg-hover); corner-shape: superellipse(1.43); border-radius: 10px; opacity: 0; transition: top .26s cubic-bezier(.2,0,0,1), left .26s cubic-bezier(.2,0,0,1), width .26s cubic-bezier(.2,0,0,1), height .26s cubic-bezier(.2,0,0,1), opacity .15s ease; }
 			.pb-hoverbox.on { opacity: 1; }
 			.pb-hoverbox.instant { transition: opacity .15s ease; }
 			.pb-pickrow, .pb-keyrow { position: relative; transition: grid-template-columns .3s cubic-bezier(.2,0,0,1); }

@@ -138,10 +138,15 @@
 						(0, jsx.jsx)("span", { className: "pb-dot", role: "img", "aria-label": sourceTitle, style: { background: dotColorOf(traced?.source) } }),
 						(0, jsx.jsx)("span", { className: "pb-keyname", style: { fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--dsw-alias-label-primary)" }, children: k.key }),
 						// 正文预览已并入下方常驻编辑器（M3-R3：textarea 折叠态扁平化即预览，
-						// 同一元素连续过渡），本行只剩 灯/键名/来源 三列
+						// 同一元素连续过渡），本行只剩 灯/键名/来源 三列。
+						// pb-srctext = 自然宽 sizer（M3-R17）：width:max-content + flex:none，
+						// 恒等于内容自然宽、不随外盒夹持收缩——截断判定与弹卡展开都以它为准，
+						// 外盒 overflow:hidden 只管视觉裁剪（夹持态显示 标题全 + path 头段）
 						(0, jsx.jsxs)("span", { className: "pb-source" + (isExpanded ? " expanded" : ""), children: [
-							(0, jsx.jsx)("span", { children: `【${sourceTitle}】` }),
-							pathText ? (0, jsx.jsx)("span", { className: "pb-path", children: pathText }) : null
+							(0, jsx.jsxs)("span", { className: "pb-srctext", children: [
+								(0, jsx.jsx)("span", { className: "pb-srctitle", children: `【${sourceTitle}】` }),
+								pathText ? (0, jsx.jsx)("span", { className: "pb-path", children: pathText }) : null
+							] })
 						] })
 					]
 				});
@@ -201,34 +206,50 @@ children: [(0, jsx.jsxs)("svg", { width: 16, height: 16, viewBox: "0 0 24 24", x
 			const expIdx = state.keyOptions.findIndex((k) => k.key === sel.expanded);
 			// 截断判定封装在键元素生命周期里：每次 React 提交后全量重算（展开/折叠/换模型/
 			// 列宽变化都会触发）。悬浮中的元素只加不撤（弹出态测量失真，撤类会引发震荡）。
+			// M3-R17：判定量全部改为「过渡不变量」——srctitle 自然宽 + path scrollWidth
+			// （内容宽，与自身 max-width 过渡无关）+ keyrow computed grid 的徽标轨道 used 值；
+			// 旧法测活盒 scrollWidth，rAF 首测撞上 path 尚未张开 → 误判 pb-fit 滑到全宽，
+			// settle 补测撤 fit → max-width none→100% 不可插值，一帧跳变（300% 缩放下可见）。
+			const classifySource = (item) => {
+				const row = item.querySelector(".pb-keyrow");
+				const src = item.querySelector(".pb-source");
+				if (!row || !src) return;
+				// 徽标宽入 CSS 变量：悬停让位用它精确截断（M3-R5）。折叠态 path 盒为 0，
+				// scrollWidth = 标题段宽——让位预留正好等于可见徽标宽（隐藏态也量得到）
+				item.style.setProperty("--src-w", src.scrollWidth + "px");
+				if (!row.className.includes("expanded")) {
+					// 折叠徽标是瞬态显形，“截断”只对展开态有意义（M2-R6）
+					src.classList.remove("pb-fit");
+					return;
+				}
+				const title = src.querySelector(".pb-srctitle");
+				const path = src.querySelector(".pb-path");
+				const natural = (title ? title.offsetWidth : 0) + (path ? path.scrollWidth : 0);
+				// P2 绕过分支（F9）：总宽 ≤ 半卡则完全无视裁剪/弹卡（natural 稳定 → 首测即终判）
+				const fit = natural <= item.clientWidth * 0.5;
+				src.classList.toggle("pb-fit", fit);
+				if (fit) {
+					src.classList.remove("pb-clipped");
+					return;
+				}
+				// 弹卡判定：徽标轨道装不下自然宽。不看自身 clientWidth——夹持态内容被
+				// overflow:hidden 收进盒内，自比较恒 false，pb-clipped 永远点不亮（M3-R17 障二）
+				const tracks = getComputedStyle(row).gridTemplateColumns.split(/\s+/);
+				const track = parseFloat(tracks[tracks.length - 1]);
+				const clipped = Number.isFinite(track) && natural > track + 0.5;
+				if (!src.matches(":hover") && getComputedStyle(src).boxShadow === "none") {
+					src.classList.toggle("pb-clipped", clipped);
+				}
+			};
 			react.useEffect(() => {
 				if (!state.available) return;
 				const measureAll = () => {
 					for (const item of document.querySelectorAll(".pb-keyitem")) {
-						const isExpItem = !!item.querySelector(".pb-keyrow.expanded");
 						const keyname = item.querySelector(".pb-keyname");
 						if (keyname && !keyname.matches(":hover") && getComputedStyle(keyname).boxShadow === "none") {
 							keyname.classList.toggle("pb-clipped", keyname.scrollWidth > keyname.clientWidth);
 						}
-						const src = item.querySelector(".pb-source");
-						if (!src) continue;
-						// 徽标自然宽度入 CSS 变量：悬停让位 padding 用它精确截断（M3-R5），
-						// 隐藏态 scrollWidth 也量得到（max-width:0 不影响 scrollWidth）
-						item.style.setProperty("--src-w", src.scrollWidth + "px");
-						// 折叠徽标是瞬态显形（隐藏态 scrollWidth 恒大于 0），“截断”只对展开态有意义，
-						// 否则 pb-clipped 常开、指针蹭到右缘就误触弹卡（M2-R6）
-						if (isExpItem && !src.matches(":hover") && getComputedStyle(src).boxShadow === "none") {
-							src.classList.toggle("pb-clipped", src.scrollWidth > src.clientWidth);
-						}
-						// P2 绕过分支（F9）：寻址元素在展开态若 总宽 ≤ 半卡，则完全无视裁剪/弹卡
-						// （isExpItem 在归档版未定义——ReferenceError 令测量管线死在首个键项，fit 从未生效）
-						if (isExpItem) {
-							const halfCard = item.clientWidth * 0.5;
-							src.classList.toggle("pb-fit", src.scrollWidth <= halfCard);
-							if (src.classList.contains("pb-fit")) src.classList.remove("pb-clipped");
-						} else {
-							src.classList.remove("pb-fit");
-						}
+						classifySource(item);
 					}
 				};
 				const raf = requestAnimationFrame(measureAll);
@@ -247,13 +268,7 @@ children: [(0, jsx.jsxs)("svg", { width: 16, height: 16, viewBox: "0 0 24 24", x
 						keyname.classList.toggle("pb-clipped", keyname.scrollWidth > keyname.clientWidth);
 					}
 					// 折叠徽标不参与截断判定（M2-R6，同 measureAll）；徽标宽度变量同机写入（M3-R5）
-					const src = item.querySelector(".pb-source");
-					if (src) {
-						item.style.setProperty("--src-w", src.scrollWidth + "px");
-						if (item.querySelector(".pb-keyrow.expanded") && !src.matches(":hover") && getComputedStyle(src).boxShadow === "none") {
-							src.classList.toggle("pb-clipped", src.scrollWidth > src.clientWidth);
-						}
-					}
+					classifySource(item);
 				};
 				document.addEventListener("mouseover", clip);
 				document.addEventListener("mouseout", clip);

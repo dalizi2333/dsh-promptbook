@@ -61,17 +61,19 @@
 				return () => window.clearTimeout(timer);
 			}, [pop]);
 			// 旅行悬浮框（M3-R18c 恢复 → R18d 独立圆角条 → R18e 纵向贴合文字线 →
-			// R18f 展开态框=收起钮）：横向内收 8、圆角固定 10，不随缝合卡缘；折叠行以
+			// R18f/g 展开态框=收起钮）：横向内收 8、圆角固定 10，不随缝合卡缘；折叠行以
 			// keyrow 内容线为基准上下各放 3px；展开态整卡不再画框——框落到收起钮
-			// （钮外扩 3px 光环，hover 到展开卡任何位置都映射到钮上）；层序对齐
-			// llm-mimo——框 z2 盖卡面，动作钮 z3 豁免（框在钮身后=光环+透底）。
+			// （矩形原样+14px 圆角=复刻钮的 :hover 胶囊底色，hover 到展开卡任何位置都
+			// 映射到钮上）；层序对齐 llm-mimo——框 z2 盖卡面，动作钮 z3 豁免。
 			const PB_TRAVEL_FRAME = true;
 			const sameRect = (a, b) => !!a && !!b && Math.abs(a.top - b.top) < 0.1 && Math.abs(a.left - b.left) < 0.1 && Math.abs(a.width - b.width) < 0.1 && Math.abs(a.height - b.height) < 0.1;
 			const measure = (el) => {
 				const row = el.querySelector(".pb-keyrow");
 				if (row && row.classList.contains("expanded")) {
 					const btn = el.querySelector(".pb-collapsebtn");
-					if (btn) return { top: btn.offsetTop - 3, left: btn.offsetLeft - 3, width: btn.offsetWidth + 6, height: btn.offsetHeight + 6, radius: 10, on: true };
+					// 框=钮矩形原样+同款 14px 圆角（R18g）：钮身透明，框色透过来即复刻
+					// 之前调好的 :hover 胶囊底色，单层不叠
+					if (btn) return { top: btn.offsetTop, left: btn.offsetLeft, width: btn.offsetWidth, height: btn.offsetHeight, radius: 14, on: true };
 				} else if (row) {
 					return { top: row.offsetTop - 3, left: el.offsetLeft + 8, width: el.offsetWidth - 16, height: row.offsetHeight + 6, radius: 10, on: true };
 				}

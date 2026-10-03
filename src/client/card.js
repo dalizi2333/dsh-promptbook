@@ -97,8 +97,11 @@
 				setHoverBox(rect);
 			};
 			const transferAtRef = react.useRef(0);
+			const suppressUntilRef = react.useRef(0);
 			const applyHover = (el) => {
 				let spot = resolveSpot(el);
+				// 收卡压制窗口（R18j）：折叠滑移的途经 mouseover 不点亮
+				if (spot && Date.now() < suppressUntilRef.current) spot = null;
 				// 展开卡只有收起钮本身触发悬浮（R18f）。钮外分两种（R18h）：
 				// 卡内钮外=真实悬停非触发区，立即熄框（不吃转移豁免——绿框位仍亮即此漏）；
 				// 卡外=离场或转移后的浏览器 hover 重算，吃 400ms 豁免
@@ -149,14 +152,14 @@
 				const prev = lastExpandedRef.current;
 				lastExpandedRef.current = nowExpanded;
 				if (prev === nowExpanded || !hoverOnRef.current) return;
-				// 入场即打豁免戳（R18i）：展开/收卡瞬间的缝合位移把指针甩出卡外，浏览器
-				// 重算的 no-spot 关框会在转移定时器之前熄框——400ms 豁免让框活到落定重推
-				transferAtRef.current = Date.now();
 				// 归属守卫（R18i）：落定重推只在指针无归属（null=卡外空档/页面）或仍属于
 				// 该键时执行；hoverKeyRef 已被别的行认领（320ms 内挪去别的行）则不抢框
 				const ownsFrame = (item) => hoverKeyRef.current === null || hoverKeyRef.current === item;
 				let timer = 0;
 				if (nowExpanded) {
+					// 入场即打豁免戳（R18i）：展开瞬间的缝合位移把指针甩出卡外，浏览器
+					// 重算的 no-spot 关框会在转移定时器之前熄框——400ms 豁免让框活到落定重推
+					transferAtRef.current = Date.now();
 					timer = window.setTimeout(() => {
 						const item = document.querySelector(".pb-keyitem:has(.pb-keyrow.expanded)");
 						if (item && ownsFrame(item)) {
@@ -165,20 +168,12 @@
 						}
 					}, 320);
 				} else if (prev) {
-					for (const item of document.querySelectorAll(".pb-keyitem")) {
-						const name = item.querySelector(".pb-keyname");
-						if (name && name.textContent === prev) {
-							push(measure(item), true);
-							// 收卡过渡（margin -12↔8 + padding）会移动行线——落定后按已收起行重校
-							timer = window.setTimeout(() => {
-								if (ownsFrame(item)) {
-									transferAtRef.current = Date.now();
-									push(measure(item), true);
-								}
-							}, 320);
-							break;
-						}
-					}
+					// 收卡（R18j owner 定）：不转移回行线——指针落在旧钮位=卡外，主动熄框，
+					// 并压制折叠过渡期间"行线从指针下方滑过"的途经 mouseover 误亮（350ms）
+					hoverOnRef.current = false;
+					hoverKeyRef.current = null;
+					suppressUntilRef.current = Date.now() + 350;
+					setHoverBox((prevBox) => prevBox && { ...prevBox, on: false });
 				}
 				return () => window.clearTimeout(timer);
 			}, [state.available, state.selection.expanded]);

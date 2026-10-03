@@ -2,5 +2,9 @@
 	"persona.minimal.prefix": {
 		"label": "极简模式 · 人设",
 		"fallback": "You are a helpful software engineer assistant."
+	},
+	"test.register.smoke": {
+		"label": "测试 · 插件注册键",
+		"fallback": "【测试】dsh-promptbook-test 激活时注册的兜底文本。"
 	}
 }

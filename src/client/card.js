@@ -198,7 +198,9 @@
 				const pathText = sourcePathOf(traced?.source, state.layersJson);
 				const line = (0, jsx.jsxs)("div", {
 					className: "pb-keyrow " + (isExpanded ? "expanded" : "collapsed"),
-					style: { display: "grid", gridTemplateColumns: isExpanded ? "14px 50% minmax(0, 1fr)" : "14px 100px 1fr", gap: 8, alignItems: "center", minWidth: 0 },
+					style: { display: "grid", gridTemplateColumns: isExpanded ? "14px 50% minmax(0, 1fr)" : "14px 170px 1fr", gap: 8, alignItems: "center", minWidth: 0 },
+					// 收起键名列 100→170px（M3-R19，owner 定）：100px 是当年为高频验证
+					// 键名裁剪→悬浮弹卡特意收窄的，如今弹卡只是保底，常规键名不该频繁裁剪
 					children: [
 						(0, jsx.jsx)("span", { className: "pb-dot", role: "img", "aria-label": sourceTitle, style: { background: dotColorOf(traced?.source) } }),
 						(0, jsx.jsx)("span", { className: "pb-keyname", style: { fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--dsw-alias-label-primary)" }, children: k.key }),

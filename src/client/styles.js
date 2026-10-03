@@ -78,7 +78,7 @@
 			   M3-R4：折叠窗负 margin 上提叠进键行第三列空位（margin-left 对齐键名列之后），
 			   折叠行回归单行紧凑；展开时 margin 连续过渡回编辑器位（30px/0）——同一元素
 			   在「行内预览 ↔ 下方编辑器」两个停靠位之间滑移 */
-			.pb-editorwrap { display: grid; grid-template-rows: 0fr; margin-top: -22px; margin-left: 120px; overflow: hidden; transition: grid-template-rows .28s cubic-bezier(.2,0,0,1), margin-top .28s cubic-bezier(.2,0,0,1), margin-left .28s cubic-bezier(.2,0,0,1); }
+			.pb-editorwrap { display: grid; grid-template-rows: 0fr; margin-top: -22px; margin-left: 182px; overflow: hidden; transition: grid-template-rows .28s cubic-bezier(.2,0,0,1), margin-top .28s cubic-bezier(.2,0,0,1), margin-left .28s cubic-bezier(.2,0,0,1); }
 			.pb-editorwrap.open { grid-template-rows: 1fr; margin-top: 0; margin-left: 30px; }
 			/* 编辑器自身 24px 下限：0fr 轨道的收纳终点=单行预览窗。pre 之后内容恒单行、
 			   无第二行可露，窗高只服务墨迹余量：24px 给行底墨迹（下划线）留 ~7px 纯空，

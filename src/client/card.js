@@ -60,13 +60,15 @@
 				const timer = window.setTimeout(() => placePop(), 260);
 				return () => window.clearTimeout(timer);
 			}, [pop]);
-			// 【暂时关闭】旅行悬浮框：缝合卡重构后落框几何需重校，待展开过渡定稿再开。
-			const PB_TRAVEL_FRAME = false;
+			// 旅行悬浮框（M3-R18c 恢复）：缝合卡重构后的落框几何重校 = radius 改读键卡
+			// computed border-radius（缝合分组的 12 / 12 12 0 0 / 0 0 12 12 / 0，框角随卡角）；
+			// 层序对齐 llm-mimo——框 z2 盖卡面，动作钮 z3 豁免（styles 同步）。
+			const PB_TRAVEL_FRAME = true;
 			react.useEffect(() => {
 				if (!PB_TRAVEL_FRAME || !state.available) return;
 				const body = bodyRef.current;
 				if (!body) return;
-				const measure = (el) => ({ top: el.offsetTop, left: el.offsetLeft, width: el.offsetWidth, height: el.offsetHeight, radius: 10, on: true });
+				const measure = (el) => ({ top: el.offsetTop, left: el.offsetLeft, width: el.offsetWidth, height: el.offsetHeight, radius: getComputedStyle(el).borderRadius || 12, on: true });
 				const sameRect = (a, b) => !!a && !!b && Math.abs(a.top - b.top) < 0.1 && Math.abs(a.left - b.left) < 0.1 && Math.abs(a.width - b.width) < 0.1 && Math.abs(a.height - b.height) < 0.1;
 				const resolveSpot = (el) => {
 					const spot = el?.closest?.(".pb-keyitem");

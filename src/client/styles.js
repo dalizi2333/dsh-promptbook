@@ -8,7 +8,9 @@
 		 */
 		const PB_STYLES = `
 			.pb-scope { position: relative; }
-			.pb-hoverbox { position: absolute; z-index: 0; pointer-events: none; box-sizing: border-box; background: var(--dsw-alias-interactive-bg-hover); border-radius: 8px; opacity: 0; transition: top .26s cubic-bezier(.2,0,0,1), left .26s cubic-bezier(.2,0,0,1), width .26s cubic-bezier(.2,0,0,1), height .26s cubic-bezier(.2,0,0,1), opacity .15s ease; }
+			/* 旅行悬浮框（M3-R18c 恢复）：z2 盖在卡面上（llm-mimo hoverbox 同款层序），
+			   落框圆角逐矩形读键卡 computed border-radius（缝合分组随卡角）；动作钮 z3 豁免 */
+			.pb-hoverbox { position: absolute; z-index: 2; pointer-events: none; box-sizing: border-box; background: var(--dsw-alias-interactive-bg-hover); corner-shape: superellipse(1.43); border-radius: 8px; opacity: 0; transition: top .26s cubic-bezier(.2,0,0,1), left .26s cubic-bezier(.2,0,0,1), width .26s cubic-bezier(.2,0,0,1), height .26s cubic-bezier(.2,0,0,1), opacity .15s ease; }
 			.pb-hoverbox.on { opacity: 1; }
 			.pb-hoverbox.instant { transition: opacity .15s ease; }
 			.pb-pickrow, .pb-keyrow { position: relative; transition: grid-template-columns .3s cubic-bezier(.2,0,0,1); }
@@ -87,6 +89,9 @@
 			   绿=保存（空覆盖合法，存空即空覆盖），黄=清除回归默认（黄绿沿用指示灯配色） */
 			.pb-iconbtn { width: 28px; height: 28px; padding: 0; border: 0; border-radius: 100%; corner-shape: superellipse(1.43); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: #fff; transition: background-color .15s ease, opacity .15s ease; }
 			.pb-iconbtn:disabled { opacity: .4; cursor: default; }
+			/* 动作钮渲染豁免（M3-R18c，llm-mimo trash/plusbtn 同款 position+z）：旅行框
+			   z2 盖卡面，动作钮 z3 浮于框上——保存/清除/收起不被框色罩住 */
+			.pb-iconbtn, .pb-collapsebtn { position: relative; z-index: 3; }
 			.pb-iconsave { background: rgba(34, 197, 94, 0.35); }
 			.pb-iconsave:hover:not(:disabled) { background: #22C55E; }
 			.pb-iconsave svg path { stroke: #15803d; transition: stroke .15s ease; }

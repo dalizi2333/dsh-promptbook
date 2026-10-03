@@ -42,3 +42,11 @@
 - 彩蛋文本：flex 项 `margin-left 8px; margin-top -2px`，悬浮 translateX(10→0)
 已知问题（owner 截图指认）：行距与展开卡的衔接仍不对，具体待新会话实测量化。疑似：wrapper paddingBottom 已退役但假行 -12 缝合仍吃末键卡的内容区（键卡 pb 现为 6/0——**此前 18px 缓冲被本轮撤回误删**，恢复 14~18px 或重排缝合或为解）。
 工具事故记录：本轮多次用 Bash+python 内嵌脚本改文件，产生半截写入与文件状态错位（client.js 曾被清空），owner 已明令禁止——后续会话修复时**只允许 ZCode 原生 Edit 工具**。
+
+## 2026-10-03（feat/gui-acceptance 合并主线 + 注册链路测试插件 + 三层解析真机会话验证）
+- **合并**：`feat/gui-acceptance` fast-forward 并入 main（4e96cc2 → 03f03e1，GUI 磨合 M0–M3-R19 全量）；合并前本地 CI 全链绿。
+- **测试插件**：新仓 `MiMo CodeX/dsh-promptbook-test`（@mimo-codex/dsh-promptbook-test，inject promptbook），激活时 `register("test.register.smoke", {label:"测试 · 插件注册键", fallback:...})`。踩坑：package.json 缺 `dsh.bundle.patch` 声明会被启动器跳过（"declares no dsh.bundle"）。已装入 020rc2 实例（profile deps link: + bundles + pnpm install）。
+- **注册链路验证 ✓**：激活 → 写透 registry.json（+4 行，已提交 f7c5d1f）+ volatile 镜像 → 卡片键清单出现「测试 · 插件注册键」行，placeholder=注册兜底文本。
+- **三层解析真机验证 ✓**（极简模式会话，模型自报系统提示词开头）：MiMo V2.6 Flash=模型层（entriesJson 视觉验收文本）；MiMo V2.6 Pro=家族层（models/mimo.json 正式文案）；DeepSeek-V41-Flash（非托管）=官方极简人设（注入通道结构性透传）。dispatch 端 resolveSystem 逐模型命中调试行实证。
+- **重要发现（显示层）**：轨迹→「初始系统提示词」= 装配瀑布的最终产物，极简预设 persona 行（会话作用域，瀑布下游）会覆盖 promptbook 的 sections 替换——轨迹显示官方句≠线上提示词；**线上真相 = llm-mimo dispatch promptView 替换后的 system**（模型自报可证）。owner 若要轨迹如实反映，需上游把装配记录改到 dispatch 后或提供 wire 级视图。
+- **tool.x 已删**（owner 定）：registry.json 演示键无真实消费方；键表 volatile 镜像重启即清。

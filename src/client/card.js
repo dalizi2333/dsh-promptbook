@@ -141,9 +141,12 @@
 						// 同一元素连续过渡），本行只剩 灯/键名/来源 三列。
 						// pb-srctext = 自然宽 sizer（M3-R17）：width:max-content + flex:none，
 						// 恒等于内容自然宽、不随外盒夹持收缩——截断判定与弹卡展开都以它为准，
-						// 外盒 overflow:hidden 只管视觉裁剪（夹持态显示 标题全 + path 头段）
+						// 外盒 overflow:hidden 只管视觉裁剪（夹持态显示 标题全 + path 头段）。
+						// pb-caret（M3-R18，llm-mimo caret 同款）：折叠态徽标首元素=展开 affordance，
+						// 随徽标显形；展开态隐藏（收起改由编辑器钮接管）
 						(0, jsx.jsxs)("span", { className: "pb-source" + (isExpanded ? " expanded" : ""), children: [
 							(0, jsx.jsxs)("span", { className: "pb-srctext", children: [
+								(0, jsx.jsx)("span", { className: "pb-caret", "aria-hidden": true, children: "▾" }),
 								(0, jsx.jsx)("span", { className: "pb-srctitle", children: `【${sourceTitle}】` }),
 								pathText ? (0, jsx.jsx)("span", { className: "pb-path", children: pathText }) : null
 							] })
@@ -173,6 +176,16 @@
 							// 挖孔描边 3.76 → 视觉 2.4/24vb，十档矩阵选定 S=0.639）；28×28 squircle 照
 							// llm-mimo 图标钮范式，右下角对齐
 							(0, jsx.jsxs)("div", { className: "pb-editoractions", children: [
+								// 收起钮（M3-R18，owner 定）：llm-mimo collapsebtn 同款字形钮；
+								// 展开态行头点击收起就此退役（M3-R18），收起只走本钮
+								(0, jsx.jsx)("button", {
+									type: "button",
+									className: "pb-collapsebtn",
+									title: t("collapse"),
+									"aria-label": t("collapse"),
+									onClick: () => props.pick("expand", k.key, ""),
+									children: "▴"
+								}),
 								(0, jsx.jsxs)("button", {
 									type: "button",
 									className: "pb-iconbtn pb-iconsave",
@@ -347,7 +360,7 @@ children: [(0, jsx.jsxs)("svg", { width: 16, height: 16, viewBox: "0 0 24 24", x
 								children: (0, jsx.jsx)("div", {
 									className: "pb-fillcard pb-keycard pb-keyitem",
 									style: { borderRadius },
-									onClick: () => props.pick("expand", k.key, isOverridden(state.userEntriesJson, k.key, sel.model) ? (parseEntries(state.userEntriesJson)[k.key]?.[sel.model] ?? "") : ""),
+									onClick: isExp ? undefined : () => props.pick("expand", k.key, isOverridden(state.userEntriesJson, k.key, sel.model) ? (parseEntries(state.userEntriesJson)[k.key]?.[sel.model] ?? "") : ""),
 									children: keyItem(k, isExp)
 								}, k.key)
 							}, k.key);

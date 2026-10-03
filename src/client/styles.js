@@ -24,6 +24,14 @@
 			/* 自然宽 sizer（M3-R17）：恒等于内容自然宽、不随外盒夹持收缩——夹持态由外盒
 			   overflow:hidden 在盒缘硬裁（标题全 + path 头段），判定与弹卡都以它为基准 */
 			.pb-srctext { display: inline-flex; align-items: center; width: max-content; flex: none; }
+			/* 折叠展开箭头（M3-R18，llm-mimo caret 同款）：徽标首元素随徽标显形（外盒裁剪），
+			   展开态隐藏——展开/收起 affordance 由编辑器收起钮接管 */
+			.pb-source .pb-caret { display: none; color: var(--dsw-alias-label-tertiary); font-size: 12px; margin-right: 4px; }
+			.pb-keyrow.collapsed .pb-source .pb-caret { display: inline; }
+			/* 收起钮（M3-R18，llm-mimo collapsebtn 同款）：透明底 squircle 字形钮。
+			   展开态行头不再点击收起（keyitem onClick 仅折叠态挂），收起只走本钮 */
+			.pb-collapsebtn { border: none; background: transparent; color: var(--dsw-alias-label-secondary); cursor: pointer; border-radius: 100%; corner-shape: superellipse(1.43); width: 56px; height: 28px; padding: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; }
+			.pb-collapsebtn:hover { background: var(--dsw-alias-interactive-bg-hover); }
 			.pb-keyrow.collapsed .pb-source { transform: translateX(16px); opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .26s cubic-bezier(.2,0,0,1), max-width .3s cubic-bezier(.2,0,0,1); }
 			.pb-keyitem:hover .pb-keyrow.collapsed .pb-source { opacity: 1; transform: translateX(0); max-width: 280px; pointer-events: auto; }
 			.pb-source.expanded { max-width: 100%; }
@@ -44,8 +52,9 @@
 			.pb-chead { font-size: 12px; color: var(--dsw-alias-label-tertiary); padding: 0 2px; }
 			.pb-stack { display: grid; gap: 0; }
 			.pb-keyitem { padding: 6px 10px; cursor: pointer; display: grid; gap: 4px; transition: padding .26s cubic-bezier(.2,0,0,1); }
-			/* 漏缝补偿：仅缝的下面一侧（展开卡自身 + 其后的卡）；上方卡不补偿 */
-			.pb-keyitem:has(.pb-keyrow.expanded) { padding: 10px; }
+			/* 漏缝补偿：仅缝的下面一侧（展开卡自身 + 其后的卡）；上方卡不补偿。
+			   展开态行头不可点击收起（M3-R18）——cursor 随之回落 */
+			.pb-keyitem:has(.pb-keyrow.expanded) { padding: 10px; cursor: default; }
 			/* 结尾假行：透明感应条——默认隐形（10px 零存在感），悬浮长到 26px 显形小点+彩蛋文本，全左对齐 */
 			/* 结尾假行：大卡片的填充向下延伸块（固定尺寸，背板+底圆角由它闭合） */
 			.pb-endrow { position: relative; box-sizing: border-box; height: 14px; padding: 0 12px 0 9px; display: flex; align-items: center; gap: 8px; transition: margin-top .26s cubic-bezier(.2,0,0,1), border-radius .26s cubic-bezier(.2,0,0,1); }

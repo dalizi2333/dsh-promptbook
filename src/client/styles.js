@@ -36,7 +36,7 @@
 			   superellipse(1.43)，端头几何与两圆钮一致。展开态行头不再点击收起
 			   （keyitem onClick 仅折叠态挂），收起只走本钮 */
 			.pb-collapsebtn { border: none; background: transparent; color: var(--dsw-alias-label-secondary); cursor: pointer; border-radius: 14px; corner-shape: superellipse(1.43); width: 66px; height: 28px; padding: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; flex: none; }
-			.pb-collapsebtn:hover { background: var(--dsw-alias-interactive-bg-hover); }
+			/* 悬浮反馈全权归旅行框（R18f owner：两层悬浮）——钮自身不再画 hover 底色 */
 			.pb-keyrow.collapsed .pb-source { transform: translateX(16px); opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .26s cubic-bezier(.2,0,0,1), max-width .3s cubic-bezier(.2,0,0,1); }
 			.pb-keyitem:hover .pb-keyrow.collapsed .pb-source { opacity: 1; transform: translateX(0); max-width: 280px; pointer-events: auto; }
 			.pb-source.expanded { max-width: 100%; }

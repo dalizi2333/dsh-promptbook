@@ -51,7 +51,7 @@ const K = "persona.minimal.prefix";
 
 console.log("[模块面]");
 scenario("1 工厂导出契约：NS/apply/inject + 纯逻辑函数", () => {
-	for (const key of ["NS", "apply", "inject", "parseEntries", "mergeEntry", "isOverridden", "keyOptionsFromSnapshot", "hostedOptionsFromLlMimoSnapshot", "modelCandidates", "resolveTraced", "layersFromSnapshot"]) {
+	for (const key of ["NS", "apply", "inject", "parseEntries", "mergeEntry", "isOverridden", "keyOptionsFromSnapshot", "hostedOptionsFromLlMimoSnapshot", "PROVIDER_DEFAULT_ID", "scopeCandidate", "resolveCandidates", "resolveTraced", "lightOf", "layersFromSnapshot"]) {
 		assert.notEqual(client[key], undefined, `缺导出 ${key}`);
 	}
 	assert.equal(client.NS, "settings.promptbook");
@@ -106,44 +106,85 @@ scenario("6 keyOptionsFromSnapshot：registryJson（含 host 镜像的种子键�
 	]);
 });
 
-scenario("8 modelCandidates：逐级剥末段 + default 去重", () => {
-	assert.deepEqual(client.modelCandidates("mimo-v2.6-flash"), ["mimo-v2.6-flash", "mimo-v2.6", "mimo", "default"]);
-	assert.deepEqual(client.modelCandidates("mimo"), ["mimo", "default"]);
-	assert.deepEqual(client.modelCandidates(""), ["default"]);
-	assert.deepEqual(client.modelCandidates(undefined), ["default"]);
+scenario("8 resolveCandidates：[模型, 供应商, default] 去重（家族层退役，与 host 逐分支一致）", () => {
+	assert.deepEqual(client.resolveCandidates("mimo-v2.6-flash", "mimo"), ["mimo-v2.6-flash", "mimo", "default"]);
+	assert.deepEqual(client.resolveCandidates("mimo", "mimo"), ["mimo", "default"]);
+	assert.deepEqual(client.resolveCandidates(undefined, "mimo"), ["mimo", "default"]);
+	assert.deepEqual(client.resolveCandidates("", "acme"), ["acme", "default"]);
+	assert.deepEqual(client.resolveCandidates(undefined, undefined), ["default"]);
 });
 
-scenario("9 resolveTraced：候选优先序与 host resolveOverride 一致（gui/compile/model/provider/fallback）", () => {
+scenario("9 scopeCandidate：供应商默认伪条目展开为 provider id，具体模型原样", () => {
+	assert.equal(client.scopeCandidate({ provider: "mimo", model: client.PROVIDER_DEFAULT_ID }), "mimo");
+	assert.equal(client.scopeCandidate({ provider: "mimo", model: "mimo-v2.6-flash" }), "mimo-v2.6-flash");
+});
+
+scenario("10 resolveTraced：候选优先序与 host resolveOverride 一致（gui/compile/model/provider/fallback，source 带命中候选 id）", () => {
 	const registryJson = JSON.stringify({ [K]: { label: "人设", fallback: "兜底句" } });
-	// GUI 层精确候选命中
-	let docs = { registryJson, entriesJson: JSON.stringify({ [K]: { "mimo-v2.6-flash": "GUI 文本" } }), layersJson: "{}", model: "mimo-v2.6-flash" };
-	assert.deepEqual(client.resolveTraced(K, "mimo-v2.6-flash", docs), { text: "GUI 文本", source: { layer: "gui" } });
+	// GUI 层精确候选命中（source.id = 命中候选）
+	let docs = { registryJson, entriesJson: JSON.stringify({ [K]: { "mimo-v2.6-flash": "GUI 文本" } }), layersJson: "{}" };
+	assert.deepEqual(client.resolveTraced(K, "mimo-v2.6-flash", "mimo", docs), { text: "GUI 文本", source: { layer: "gui", id: "mimo-v2.6-flash" } });
 	// 同候选下 GUI 压过编译文档
-	docs = { registryJson, entriesJson: JSON.stringify({ [K]: { "mimo-v2.6-flash": "GUI 文本" } }), layersJson: JSON.stringify({ __overrides__: { [K]: { "mimo-v2.6-flash": "编译文本" } } }), model: "mimo-v2.6-flash" };
-	assert.deepEqual(client.resolveTraced(K, "mimo-v2.6-flash", docs), { text: "GUI 文本", source: { layer: "gui" } });
-	// 合并文档（GUI/编译）全候选优先于包层：GUI 家族候选压过包层精确候选
-	docs = { registryJson, entriesJson: JSON.stringify({ [K]: { "mimo": "GUI 家族文本" } }), layersJson: JSON.stringify({ "mimo-v2.6-flash": { [K]: "包层精确文本" } }), model: "mimo-v2.6-flash" };
-	assert.deepEqual(client.resolveTraced(K, "mimo-v2.6-flash", docs), { text: "GUI 家族文本", source: { layer: "gui" } });
-	// 编译文档精确候选压过包层家族（合并文档先走完）
-	docs = { registryJson, entriesJson: "{}", layersJson: JSON.stringify({ __overrides__: { [K]: { "mimo-v2.6-flash": "编译精确文本" } }, mimo: { [K]: "包层家族文本" } }), model: "mimo-v2.6-flash" };
-	assert.deepEqual(client.resolveTraced(K, "mimo-v2.6-flash", docs), { text: "编译精确文本", source: { layer: "compile" } });
-	// 包层家族命中（mimo.json 种子人设场景）
-	docs = { registryJson, entriesJson: "{}", layersJson: JSON.stringify({ mimo: { [K]: "家族人设" } }), model: "mimo-v2.6-flash" };
-	assert.deepEqual(client.resolveTraced(K, "mimo-v2.6-flash", docs), { text: "家族人设", source: { layer: "provider", id: "mimo" } });
+	docs = { registryJson, entriesJson: JSON.stringify({ [K]: { "mimo-v2.6-flash": "GUI 文本" } }), layersJson: JSON.stringify({ __overrides__: { [K]: { "mimo-v2.6-flash": "编译文本" } } }) };
+	assert.deepEqual(client.resolveTraced(K, "mimo-v2.6-flash", "mimo", docs), { text: "GUI 文本", source: { layer: "gui", id: "mimo-v2.6-flash" } });
+	// 合并文档（GUI/编译）全候选优先于包层：GUI 供应商候选压过包层精确候选
+	docs = { registryJson, entriesJson: JSON.stringify({ [K]: { "mimo": "GUI 供应商默认" } }), layersJson: JSON.stringify({ "mimo-v2.6-flash": { [K]: "包层精确文本" } }) };
+	assert.deepEqual(client.resolveTraced(K, "mimo-v2.6-flash", "mimo", docs), { text: "GUI 供应商默认", source: { layer: "gui", id: "mimo" } });
+	// 编译文档精确候选压过包层供应商（合并文档先走完）
+	docs = { registryJson, entriesJson: "{}", layersJson: JSON.stringify({ __overrides__: { [K]: { "mimo-v2.6-flash": "编译精确文本" } }, mimo: { [K]: "包层供应商文本" } }) };
+	assert.deepEqual(client.resolveTraced(K, "mimo-v2.6-flash", "mimo", docs), { text: "编译精确文本", source: { layer: "compile", id: "mimo-v2.6-flash" } });
+	// 包层供应商命中（mimo.json 种子人设场景）
+	docs = { registryJson, entriesJson: "{}", layersJson: JSON.stringify({ mimo: { [K]: "供应商注册人设" } }) };
+	assert.deepEqual(client.resolveTraced(K, "mimo-v2.6-flash", "mimo", docs), { text: "供应商注册人设", source: { layer: "provider", id: "mimo" } });
+	// 家族层退役：剥段祖先（mimo-v2.6）不再是候选
+	docs = { registryJson, entriesJson: "{}", layersJson: JSON.stringify({ "mimo-v2.6": { [K]: "退役家族层" } }) };
+	assert.deepEqual(client.resolveTraced(K, "mimo-v2.6-flash", "mimo", docs), { text: "兜底句", source: { layer: "fallback" } });
 	// 全链未命中 → 注册表兜底
-	docs = { registryJson, entriesJson: "{}", layersJson: "{}", model: "mimo-v2.6-flash" };
-	assert.deepEqual(client.resolveTraced(K, "mimo-v2.6-flash", docs), { text: "兜底句", source: { layer: "fallback" } });
+	docs = { registryJson, entriesJson: "{}", layersJson: "{}" };
+	assert.deepEqual(client.resolveTraced(K, "mimo-v2.6-flash", "mimo", docs), { text: "兜底句", source: { layer: "fallback" } });
 	// 键未注册 → undefined
-	assert.equal(client.resolveTraced("no.such.key", "mimo", { registryJson, entriesJson: "{}", layersJson: "{}" }), void 0);
+	assert.equal(client.resolveTraced("no.such.key", "mimo", "mimo", { registryJson, entriesJson: "{}", layersJson: "{}" }), void 0);
 });
 
-scenario("10 layersFromSnapshot：畸形/非串容错", () => {
+scenario("11 供应商默认作用域重放：链 = [供应商, default]，包层注册命中 → 供应商层绿", () => {
+	const registryJson = JSON.stringify({ [K]: { label: "人设", fallback: "兜底句" } });
+	// 供应商默认作用域（model 参数 = provider id，去重后链退化）命中包层注册
+	let docs = { registryJson, entriesJson: "{}", layersJson: JSON.stringify({ mimo: { [K]: "供应商注册人设" } }) };
+	assert.deepEqual(client.resolveTraced(K, "mimo", "mimo", docs), { text: "供应商注册人设", source: { layer: "provider", id: "mimo" } });
+	// 同作用域下 GUI 供应商覆盖压过包层注册
+	docs = { registryJson, entriesJson: JSON.stringify({ [K]: { "mimo": "GUI 覆盖" } }), layersJson: JSON.stringify({ mimo: { [K]: "供应商注册人设" } }) };
+	assert.deepEqual(client.resolveTraced(K, "mimo", "mimo", docs), { text: "GUI 覆盖", source: { layer: "gui", id: "mimo" } });
+	// 供应商槽未设置但全局 default 有 → 命中全局 default
+	docs = { registryJson, entriesJson: JSON.stringify({ [K]: { default: "全局默认" } }), layersJson: "{}" };
+	assert.deepEqual(client.resolveTraced(K, "mimo", "mimo", docs), { text: "全局默认", source: { layer: "gui", id: "default" } });
+});
+
+scenario("12 lightOf：作用域相对灯态矩阵（owner 灯语）", () => {
+	const src = (layer, id) => ({ layer, id });
+	const G = "green", Y = "yellow", R = "gray";
+	// 模型作用域：命中本槽绿 / 供应商槽黄 / 全局 default 与兜底灰
+	assert.equal(client.lightOf({ source: src("gui", "mimo-v2.6-flash") }, "mimo-v2.6-flash"), G);
+	assert.equal(client.lightOf({ source: src("compile", "mimo-v2.6-flash") }, "mimo-v2.6-flash"), G);
+	assert.equal(client.lightOf({ source: src("model", "mimo-v2.6-flash") }, "mimo-v2.6-flash"), G);
+	assert.equal(client.lightOf({ source: src("provider", "mimo") }, "mimo-v2.6-flash"), Y, "模型作用域命中供应商槽 → 黄");
+	assert.equal(client.lightOf({ source: src("gui", "mimo") }, "mimo-v2.6-flash"), Y, "GUI 供应商默认在模型作用域 → 黄");
+	assert.equal(client.lightOf({ source: src("gui", "default") }, "mimo-v2.6-flash"), R, "全局 default → 灰");
+	assert.equal(client.lightOf({ source: { layer: "fallback" } }, "mimo-v2.6-flash"), R);
+	assert.equal(client.lightOf(undefined, "mimo-v2.6-flash"), R);
+	// 供应商默认作用域：命中供应商槽绿 / 全局 default 与兜底灰；黄不可达
+	assert.equal(client.lightOf({ source: src("provider", "mimo") }, "mimo"), G);
+	assert.equal(client.lightOf({ source: src("gui", "mimo") }, "mimo"), G);
+	assert.equal(client.lightOf({ source: src("gui", "default") }, "mimo"), R);
+	assert.equal(client.lightOf({ source: { layer: "fallback" } }, "mimo"), R);
+});
+
+scenario("13 layersFromSnapshot：畸形/非串容错", () => {
 	assert.deepEqual(client.layersFromSnapshot({ layersJson: "not json" }), {});
 	assert.deepEqual(client.layersFromSnapshot({}), {});
 	assert.deepEqual(client.layersFromSnapshot({ layersJson: '{"mimo":{"k":"v"}}' }), { mimo: { k: "v" } });
 });
 
-scenario("7 hostedOptionsFromLlMimoSnapshot：主路由 + customProviders 两级派生，未加载→[]", () => {
+scenario("14 hostedOptionsFromLlMimoSnapshot：主路由 + customProviders 两级派生，未加载→[]", () => {
 	assert.deepEqual(client.hostedOptionsFromLlMimoSnapshot({ status: "loading" }), []);
 	const snap = {
 		status: "ready",
@@ -166,4 +207,15 @@ scenario("7 hostedOptionsFromLlMimoSnapshot：主路由 + customProviders 两级
 	assert.equal(client.hostedOptionsFromLlMimoSnapshot(live)[0].label, "Acme 网关");
 });
 
-console.log(passed === 10 ? "\nPASS：10/10 场景全绿" : `\nFAIL：${10 - passed} 项未过`);
+scenario("15 docs.pendingPack：乐观排他包层命中（重置落盘前的卡面一致性）", () => {
+	const registryJson = JSON.stringify({ [K]: { label: "人设", fallback: "兜底句" } });
+	const layersJson = JSON.stringify({ mimo: { [K]: "供应商注册人设" } });
+	// 待确认集内的包层命中按已删处理 → 回落兜底
+	const pending = { registryJson, entriesJson: "{}", layersJson, pendingPack: [K + "\u0000mimo"] };
+	assert.deepEqual(client.resolveTraced(K, "mimo-v2.6-flash", "mimo", pending), { text: "兜底句", source: { layer: "fallback" } });
+	// 对账确认后剪除待确认集 → 常规解析恢复
+	const confirmed = { registryJson, entriesJson: "{}", layersJson, pendingPack: [] };
+	assert.deepEqual(client.resolveTraced(K, "mimo-v2.6-flash", "mimo", confirmed), { text: "供应商注册人设", source: { layer: "provider", id: "mimo" } });
+});
+
+console.log(passed === 14 ? "\nPASS：14/14 场景全绿" : `\nFAIL：${14 - passed} 项未过`);

@@ -12,7 +12,7 @@
 | --- | --- |
 | 注入 | 按模型改写系统提示词与工具描述——主通道 `system-prompt/assemble` 装配瀑布（GUI 轨迹可见），`llmMimo.registerPromptSource` 兜底 |
 | 编辑 | 设置→插件页的逐键编辑卡（供应商/模型二级下拉 + 文本框 + 清除断层），`ConfigForm("settings.promptbook")` 原子写 |
-| 服务 | `ctx.promptbook`：`listKeys()` / `resolve(key, model)` 分层解析，供编译器等后续消费方注入使用 |
+| 服务 | `ctx.promptbook`：`listKeys()` / `resolve(key, model, provider?)` 分层解析，供编译器等后续消费方注入使用 |
 
 **作用域**：合法模型世界 = `llmMimo.listHostedModels()`（本插件硬依赖 [dsh-llm-mimo](https://github.com/dalizi2333/dsh-llm-mimo)）。走 llm-deepseek / llm-pi-ai 的模型不在名单内——不列出、不解析、不注入。
 

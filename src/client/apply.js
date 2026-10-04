@@ -16,10 +16,22 @@
 			const controller = {
 				selection: { provider: "", model: "", expanded: "" },
 				drafts: {},
+				// GUI 已发起、host 尚未对账落盘的包层物理删除（"key\u0000candidate"）：
+				// 重置到下一次 dispatch 对账之间，卡面解析靠它做乐观排他
+				pendingPackDeletes: new Set(),
 				projection(snapshot) {
 					const mimoSnapshot = mimoScope.getSnapshot();
 					const hosted = hostedOptionsFromLlMimoSnapshot(mimoSnapshot);
 					if (controller.selection.provider === "" && hosted.length > 0) controller.selection = { provider: hosted[0].provider, model: hosted[0].models[0]?.id ?? "", expanded: "" };
+					// 镜像已确认删掉的（对账落盘后包层不再含该条目）即从待确认集剪除
+					const layersJson = typeof snapshot.value?.layersJson === "string" ? snapshot.value.layersJson : "{}";
+					const layerDocs = layersFromSnapshot({ layersJson });
+					const pendingPack = [...controller.pendingPackDeletes].filter((entry) => {
+						const cut = entry.indexOf("\u0000");
+						const doc = layerDocs[entry.slice(cut + 1)];
+						return doc && typeof doc === "object" && doc[entry.slice(0, cut)] !== void 0;
+					});
+					controller.pendingPackDeletes = new Set(pendingPack);
 					return {
 						...controller.form.shell(),
 						writable: snapshot.writable,
@@ -27,6 +39,7 @@
 						entriesJson: snapshot.value?.entriesJson ?? "{}",
 						userEntriesJson: typeof snapshot.user?.entriesJson === "string" ? snapshot.user.entriesJson : "",
 						layersJson: snapshot.value?.layersJson ?? "{}",
+						pendingPack,
 						keyOptions: keyOptionsFromSnapshot(snapshot.value),
 						hosted,
 						selection: { ...controller.selection },
@@ -56,13 +69,38 @@
 				async commitEntry(key, model, text) {
 					const merged = mergeEntry(scope.getSnapshot().value?.entriesJson ?? "{}", key, model, text);
 					controller.form.actions().edit("entriesJson", merged);
-									await controller.form.save();
-									controller.drafts = { ...controller.drafts, [key]: text };
-									controller.store.set(controller.projection(scope.getSnapshot()));
+					await controller.form.save();
+					controller.drafts = { ...controller.drafts, [key]: text };
+					controller.store.set(controller.projection(scope.getSnapshot()));
+				},
+				// 重置包层来源的命中：物理删除 models/<candidate>.json 里的条目（owner 裁决：
+				// 注册值可丢失，重装/升级或 git checkout 恢复）。写入 ops 队列，host 在装配/
+				// resolve 时对账落盘；卡面在落盘前用 pendingPack 乐观排他
+				async commitPackOp(key, candidate) {
+					const raw = scope.getSnapshot().value?.packOpsJson;
+					const ops = safeParse(typeof raw === "string" ? raw : "{}");
+					const deletions = Array.isArray(ops?.deletions)
+						? ops.deletions.filter((d) => !(d && d.key === key && d.candidate === candidate))
+						: [];
+					deletions.push({ key, candidate, ts: Date.now() });
+					controller.form.actions().edit("packOpsJson", JSON.stringify({ deletions }));
+					await controller.form.save();
+					controller.pendingPackDeletes.add(key + "\u0000" + candidate);
+					// 所见即所编：重置后草稿 = 乐观排他下的实际生效文本（回退后的全局 default）
+					const snap = scope.getSnapshot();
+					const seed = resolveTraced(key, candidate, controller.selection.provider, {
+						registryJson: snap.value?.registryJson ?? "{}",
+						entriesJson: snap.value?.entriesJson ?? "{}",
+						layersJson: snap.value?.layersJson ?? "{}",
+						pendingPack: [key + "\u0000" + candidate]
+					})?.text ?? "";
+					controller.drafts = { ...controller.drafts, [key]: seed };
+					controller.store.set(controller.projection(scope.getSnapshot()));
 				}
 			};
 			controller.form = new primitives.SettingsFormModel(scope, [
-				(0, primitives.settingsTextField)("entriesJson")
+				(0, primitives.settingsTextField)("entriesJson"),
+				(0, primitives.settingsTextField)("packOpsJson")
 			], []);
 			controller.store = controller.form.bind(() => controller.projection(scope.getSnapshot()));
 			const offMimo = mimoScope.subscribe(() => controller.store.set(controller.projection(scope.getSnapshot())));
@@ -79,7 +117,8 @@
 				inject: () => ({
 					hooks: { promptbookCard: controller.store },
 					pick: (field, key, value) => controller.pick(field, key, value),
-					commitEntry: (key, model, text) => controller.commitEntry(key, model, text)
+					commitEntry: (key, model, text) => controller.commitEntry(key, model, text),
+					commitPackOp: (key, candidate) => controller.commitPackOp(key, candidate)
 				})
 			}, PromptbookCard))), "promptbook: page");
 		}

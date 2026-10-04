@@ -184,16 +184,19 @@
 			const hosted = state.hosted;
 			const sel = state.selection;
 			const currentProvider = hosted.find((p) => p.provider === sel.provider);
-			const modelDisplay = currentProvider?.models.find((m) => m.id === sel.model)?.name ?? sel.model;
-			const docs = { registryJson: state.registryJson, entriesJson: state.entriesJson, layersJson: state.layersJson, model: sel.model };
+			const modelDisplay = sel.model === PROVIDER_DEFAULT_ID ? t("providerDefault") : (currentProvider?.models.find((m) => m.id === sel.model)?.name ?? sel.model);
+			// 当前作用域的解析候选（供应商默认伪条目展开为 provider id）与解析文档
+			const candidate = scopeCandidate(sel);
+			const docs = { registryJson: state.registryJson, entriesJson: state.entriesJson, layersJson: state.layersJson, pendingPack: state.pendingPack };
 			// 键行工厂：唯一 consistently-mounted 键行（collapsed/expanded 状态类，DOM 跨态复用），
 			// 来源标签（pb-source）为每键唯一常驻元素；分离由外层 wrapper/内卡的双层过渡承担。
 			const keyItem = (k, isExpanded) => {
 				const slug = k.key.replace(/[^a-zA-Z0-9]/g, "-");
-				const overridden = isOverridden(state.userEntriesJson, k.key, sel.model);
-				const traced = resolveTraced(k.key, sel.model, docs);
-				const preview = overridden ? (parseEntries(state.userEntriesJson)[k.key]?.[sel.model] ?? "") : (traced?.text ?? "");
-				const sourceTitle = overridden ? t("sourceGui") : sourceTitleText(traced?.source, modelDisplay, t);
+				const overridden = isOverridden(state.userEntriesJson, k.key, candidate);
+				const traced = resolveTraced(k.key, candidate, sel.provider, docs);
+				const light = lightOf(traced, candidate);
+				const preview = overridden ? (parseEntries(state.userEntriesJson)[k.key]?.[candidate] ?? "") : (traced?.text ?? "");
+				const sourceTitle = sourceTitleText(traced?.source, modelDisplay, t, candidate);
 				const rowDraft = state.drafts[k.key] ?? "";
 				const pathText = sourcePathOf(traced?.source, state.layersJson);
 				const line = (0, jsx.jsxs)("div", {
@@ -202,7 +205,7 @@
 					// 收起键名列 100→170px（M3-R19，owner 定）：100px 是当年为高频验证
 					// 键名裁剪→悬浮弹卡特意收窄的，如今弹卡只是保底，常规键名不该频繁裁剪
 					children: [
-						(0, jsx.jsx)("span", { className: "pb-dot", role: "img", "aria-label": sourceTitle, style: { background: dotColorOf(traced?.source) } }),
+						(0, jsx.jsx)("span", { className: "pb-dot", role: "img", "aria-label": sourceTitle, style: { background: dotColorOf(light) } }),
 						(0, jsx.jsx)("span", { className: "pb-keyname", style: { fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--dsw-alias-label-primary)" }, children: k.key }),
 						// 正文预览已并入下方常驻编辑器（M3-R3：textarea 折叠态扁平化即预览，
 						// 同一元素连续过渡），本行只剩 灯/键名/来源 三列。
@@ -258,8 +261,10 @@
 									className: "pb-iconbtn pb-iconsave",
 									title: t("set"),
 									"aria-label": t("set"),
-									disabled: disabled || rowDraft === preview,
-									onClick: () => props.commitEntry(k.key, sel.model, rowDraft),
+									// 灯语门控（owner 语义）：绿=所见即所编，键值编辑过才可存；灰/黄=恒生效
+									//（灰/黄态允许一键落显式空白 = 该作用域退出接管）
+									disabled: disabled || (light === "green" && rowDraft === preview),
+									onClick: () => props.commitEntry(k.key, candidate, rowDraft),
 									children: [(0, jsx.jsxs)("svg", { width: 16, height: 16, viewBox: "0 0 24 24", fill: "none", xmlns: "http://www.w3.org/2000/svg", "aria-hidden": true, stroke: "currentColor", "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round", children: [
 										(0, jsx.jsx)("path", { d: "M3 19V5a2 2 0 0 1 2-2h11.172a2 2 0 0 1 1.414.586l2.828 2.828A2 2 0 0 1 21 7.828V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z" }),
 										(0, jsx.jsx)("path", { d: "M8.6 9h6.8a.6.6 0 0 0 .6-.6V3.6a.6.6 0 0 0-.6-.6H8.6a.6.6 0 0 0-.6.6v4.8a.6.6 0 0 0 .6.6Z" }),
@@ -271,8 +276,13 @@
 									className: "pb-iconbtn pb-iconclear",
 									title: t("clear"),
 									"aria-label": t("clear"),
-									disabled: disabled || !overridden,
-									onClick: () => props.commitEntry(k.key, sel.model, null),
+									// 重置双动作（owner 裁决：注册值可丢失，重装/升级或 git checkout 恢复）：
+									// 本卡有覆盖 → 删除；包层来源的绿 → 发起物理删除（packOps 队列，host 对账
+									// 落盘 models/<candidate>.json）。编译层/纯灰/黄无可删之物
+									disabled: disabled || !(overridden || (light === "green" && (traced?.source?.layer === "model" || traced?.source?.layer === "provider"))),
+									onClick: overridden
+										? () => props.commitEntry(k.key, candidate, null)
+										: () => props.commitPackOp(k.key, candidate),
 children: [(0, jsx.jsxs)("svg", { width: 16, height: 16, viewBox: "0 0 24 24", xmlns: "http://www.w3.org/2000/svg", "aria-hidden": true, children: [
 										(0, jsx.jsx)("path", { d: "M3 19V5a2 2 0 0 1 2-2h11.172a2 2 0 0 1 1.414.586l2.828 2.828A2 2 0 0 1 21 7.828V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z", class: "pb-clearglyph" }),
 										(0, jsx.jsx)("path", { d: "M4.252 4v5H9M5.07 8a8 8 0 1 1-.818 6", transform: "translate(5.04 6.54) scale(0.58)", class: "pb-clearink", fill: "none", "stroke-width": "2.4", "stroke-linecap": "round", "stroke-linejoin": "round" })
@@ -370,7 +380,9 @@ children: [(0, jsx.jsxs)("svg", { width: 16, height: 16, viewBox: "0 0 24 24", x
 					props.pick("provider", "", p.provider);
 					closePop();
 				}, p.provider))
-				: (currentProvider?.models ?? []).map((m) => popLine(m.name, null, m.id === sel.model, () => {
+				// 供应商默认伪条目置顶：选中即供应商层作用域（模型 id = __default__），
+				// 供应商计数标签只数真实模型，不含本条目
+				: [{ id: PROVIDER_DEFAULT_ID, name: t("providerDefault") }, ...(currentProvider?.models ?? [])].map((m) => popLine(m.name, null, m.id === sel.model, () => {
 					props.pick("model", "", m.id);
 					closePop();
 				}, m.id));
@@ -427,7 +439,14 @@ children: [(0, jsx.jsxs)("svg", { width: 16, height: 16, viewBox: "0 0 24 24", x
 								children: (0, jsx.jsx)("div", {
 									className: "pb-fillcard pb-keycard pb-keyitem",
 									style: { borderRadius },
-									onClick: isExp ? undefined : () => props.pick("expand", k.key, isOverridden(state.userEntriesJson, k.key, sel.model) ? (parseEntries(state.userEntriesJson)[k.key]?.[sel.model] ?? "") : ""),
+									onClick: isExp ? undefined : () => {
+										// 展开即预填当前生效值（所见即所编）：绿态保存门控「编辑过才生效」
+										// 依赖草稿==生效值；空白覆盖 = 清空后保存的显式动作；
+										// 回退标记不进草稿（用户看到的是回退后生效的全局 default 文本）
+										const raw = parseEntries(state.userEntriesJson)[k.key]?.[candidate];
+										const seeded = typeof raw === "string" ? raw : (resolveTraced(k.key, candidate, sel.provider, docs)?.text ?? "");
+										props.pick("expand", k.key, seeded);
+									},
 									children: keyItem(k, isExp)
 								}, k.key)
 							}, k.key);

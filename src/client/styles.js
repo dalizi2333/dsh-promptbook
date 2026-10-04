@@ -136,21 +136,20 @@
 			secondary: { ...NOTICE_BASE, color: "var(--dsw-alias-label-secondary)" },
 			error: { ...NOTICE_BASE, color: "var(--dsw-alias-state-error-primary)" }
 		};
-		/** 指示灯配色：命中深度三档（绿=模型级精确，黄=家族层，灰=注册表兜底）。 */
+		/** 指示灯配色（灯态来自 logic.lightOf）：绿=命中当前作用域槽，黄=继承供应商默认，灰=全局 default/兜底。 */
 		const DOT_COLORS = { green: "#22C55E", yellow: "#EAB308", gray: "var(--dsw-alias-label-caption)" };
-		function dotColorOf(source) {
-			if (!source) return DOT_COLORS.gray;
-			if (source.layer === "model" || source.layer === "gui" || source.layer === "compile") return DOT_COLORS.green;
-			if (source.layer === "provider") return DOT_COLORS.yellow;
-			return DOT_COLORS.gray;
+		function dotColorOf(light) {
+			return DOT_COLORS[light] ?? DOT_COLORS.gray;
 		}
-		/** 灰值悬浮文案：命中层的人话（模型名/家族 id/编译产物/注册表兜底）。 */
-		function sourceTitleText(source, modelDisplay, t) {
+		/** 灰值悬浮文案：命中层的人话（模型名/供应商 id/编译产物/全局 default/注册表兜底）。 */
+		function sourceTitleText(source, modelDisplay, t, scope) {
 			if (!source) return "";
 			if (source.layer === "model") return t("sourceModel", { name: modelDisplay });
 			if (source.layer === "provider") return t("sourceProvider", { id: source.id });
 			if (source.layer === "compile") return t("sourceCompile");
 			if (source.layer === "fallback") return t("sourceFallback");
-			return t("sourceGui");
+			if (source.id === scope) return t("sourceGui");
+			if (source.id === "default") return t("sourceGlobalDefault");
+			return t("sourceGuiProvider");
 		}
 		//#endregion

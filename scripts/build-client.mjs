@@ -56,8 +56,11 @@ const FOOTER = `		exports.NS = NS;
 		exports.isOverridden = isOverridden;
 		exports.keyOptionsFromSnapshot = keyOptionsFromSnapshot;
 		exports.hostedOptionsFromLlMimoSnapshot = hostedOptionsFromLlMimoSnapshot;
-		exports.modelCandidates = modelCandidates;
+		exports.PROVIDER_DEFAULT_ID = PROVIDER_DEFAULT_ID;
+		exports.scopeCandidate = scopeCandidate;
+		exports.resolveCandidates = resolveCandidates;
 		exports.resolveTraced = resolveTraced;
+		exports.lightOf = lightOf;
 		exports.layersFromSnapshot = layersFromSnapshot;
 		return module.exports;
 	}

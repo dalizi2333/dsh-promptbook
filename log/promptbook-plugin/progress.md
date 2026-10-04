@@ -50,3 +50,29 @@
 - **三层解析真机验证 ✓**（极简模式会话，模型自报系统提示词开头）：MiMo V2.6 Flash=模型层（entriesJson 视觉验收文本）；MiMo V2.6 Pro=家族层（models/mimo.json 正式文案）；DeepSeek-V41-Flash（非托管）=官方极简人设（注入通道结构性透传）。dispatch 端 resolveSystem 逐模型命中调试行实证。
 - **重要发现（显示层）**：轨迹→「初始系统提示词」= 装配瀑布的最终产物，极简预设 persona 行（会话作用域，瀑布下游）会覆盖 promptbook 的 sections 替换——轨迹显示官方句≠线上提示词；**线上真相 = llm-mimo dispatch promptView 替换后的 system**（模型自报可证）。owner 若要轨迹如实反映，需上游把装配记录改到 dispatch 后或提供 wire 级视图。
 - **tool.x 已删**（owner 定）：registry.json 演示键无真实消费方；键表 volatile 镜像重启即清。
+
+## 2026-10-04（家族层退役 → 供应商层重构 + 作用域相对灯色 + GUI 供应商默认作用域）
+- **owner 语义裁决**：①「家族层」（模型 id 逐级剥 -tier 祖先链）整个退役，换显式**供应商层**；mimo = 特殊供应商，models/mimo.json = 默认注册好的供应商层（随包），可被 GUI 覆写。②灯语作用域相对：绿=命中当前作用域槽（所见即所编）、黄=继承供应商默认（仅模型作用域可达）、灰=命中全局 default/注册表兜底（全局 default 只有注册插件可定义）。③保存键：绿=编辑过才生效，灰/黄=恒生效（可存空白值=显式退出接管，注入通道 text!=="" 门使其表现为透传）。④重置键：绿且本卡 GUI 层该槽有条目→生效（删条目回落下层）；包层/编译层来源的绿→禁用（包层随包冻结不可移除，owner 裁决「默认注册好且可被覆写」——覆写可移除，注册本身不可）。
+- **host（lib/index.js）**：`modelCandidates` → `resolveCandidates(model, provider)`（链=[模型,供应商,default] 去重）；`resolve/resolveOverride` 加 provider 参（省略则供应商层不可达，向后兼容）；`pendingModelOf` → `pendingRouteOf`（返回 {provider,model}，逐字段独立回退 requestHeader）；装配+dispatch 两通道贯通 provider。
+- **client（src/client/*）**：resolveTraced 加 provider 参、source 带命中候选 id（gui/compile 也带）；`scopeCandidate`（供应商默认伪条目 `__default__` 展开 provider id）+ `lightOf` 纯函数；模型下拉「供应商默认」置顶伪条目（计数不含）；灯色=lightOf 映射；保存门控按灯态切换；展开预填改恒预填当前生效值（所见即所编，绿态门控依赖草稿==生效值）；文案 家族层→供应商层、rowsHint 三色解释。
+- **验证**：host 17/17 + inject 11/11（新增 2b 供应商层装配场景）+ client 13/13（新增 scopeCandidate/供应商默认重放/lightOf 矩阵）；`npm run ci` 全链绿（DSH_RUNTIME_BIN）。真机走查（020rc2 实例重启 + IAB）全矩阵过：模型作用域 persona 黄灯「供应商层·mimo」→ 供应商默认绿 → 覆写保存绿「本卡覆盖」→ 重置回落注册绿 → 模型覆写绿 → 重置回黄；smoke 键灰；计数 (3) 不含伪条目。**E2E 注入 ✓**：真会话（mimo-v2.6-flash，54 tok/s）轨迹 promptView「已替换（promptbook）」= models/mimo.json 供应商层文本——variables.provider 真实入链。
+- **未做**：未 commit/push（待 owner）；工作树里 registry.json 改动与 models/deepseek.json 未跟踪为 owner 既有面（promptbook-test 注册链路 + 手工 deepseek 层），未触碰。
+
+## 2026-10-04 追记（owner 语义纠偏：供应商注册可回退 → UNSET_SENTINEL）
+- **纠偏**：上一轮「包层来源的绿禁用重置」理解错了——owner 澄清 mimo 的特殊性**只有**「插件开箱给该供应商槽预置了正文」，槽位语义与任何供应商无差别，**必须能重置回落全局 default**。
+- **实现**：保留值 `UNSET_SENTINEL = "__unset__"`（host `lib/index.js` 导出 + client `logic.js` 同字面量，契约两边同步）。GUI 重置包层/编译层来源的绿 → GUI 层写入哨兵；解析链（host `resolveOverride` + client `resolveTraced` 镜像）见哨兵即**跳过该候选（含包层文件）**继续下一候选——真回落而非影子副本，兜底文本将来更新不失步。重置键双动作：本卡有条目（覆盖或哨兵）→删除；包层/编译层绿且无本卡条目→写哨兵。哨兵态显示：灰灯「已回退全局 default」+ 重置仍亮（删标记=注册值回归）、保存恒生效（草稿预填回退后生效文本，哨兵字面量不进 UI）。
+- **验证**：测试 18+11+14 全绿（新增哨兵场景：跳候选含包层/不外溢其他候选/编译层哨兵/模型槽压过供应商哨兵）+ `npm run ci` 过；020rc2 重启真机闭环：包层绿→重置亮→点=灰「已回退全局 default」→再点=注册绿回归；profile entriesJson 复核 `"{}"` 无残留。AGENTS §一/二 契约已同步（保留值条目 + mimo「默认注册」表述）。
+
+## 2026-10-04 追记二（语义终版：破坏性重置 + 哨兵防泄漏）
+- **owner 两度纠偏后的终版语义**：重置是**破坏性的**——包层绿点重置 = 注册值回退成全局 default，卡内不可恢复（恢复=重装插件/备份文本存为覆盖/手清配置）；回退态（哨兵在）重置键**熄灭**（与最早灯语「灰 ⇒ 重置失效」完全自洽）。上一轮「再点一次恢复注册」的翻转设计废弃。
+- **泄漏 bug 修复**：commitEntry 曾把写入值（哨兵字面量）原样存进草稿 → 重置后编辑框显示 "__unset__"。修复：哨兵路径用 merged 新文档现解析，草稿/预填 = 回退后实际生效文本；placeholder 对哨兵态放行 preview。真机验证：回退态编辑框显示 "You are a helpful software engineer assistant."，标记零泄漏，重置键熄灭+悬浮恢复提示。
+- **未决（owner 待表态）**：哨兵机制在配置文件（cordis.patch.yml entriesJson）里留有 "__unset__" 痕迹——包文件不可写约束下的唯一干净做法；若 owner 要物理删除（真改 models/mimo.json 条目）需新开卡→host 写文件通道并修订包层冻结纪律。当前实例 profile 保留 owner 重置后的回退态未动。
+
+## 2026-10-04 追记三（终版：物理删除 + TTL 队列，哨兵机制整个退役）
+- **重装链路实测（框架事实）**：rc.2 `plugin remove`/`add` 均不清插件在 cordis.patch.yml 里的配置行——用户配置跨重装持久（设置系统天性）。哨兵方案的「重装恢复默认文本」因此不成立，且 owner 明确「多余的保底功能要整个删掉」→ **哨兵机制全退役**（UNSET_SENTINEL 从 host/client/文档/导出面全部移除）。
+- **终版语义（真机闭环验证）**：重置包层来源的绿 = 经 `Config.packOpsJson` 队列 `{deletions:[{key,candidate,ts}]}` 驱动 host `applyPackOps` **物理删除** models/<candidate>.json 条目（$ 键保留）；UI 即时乐观排他（pendingPack）+ 草稿预填回退后生效文本。落盘时机 = 下次 resolveOverride 前（TTL 内）；**boot 不对账**；**TTL = PACK_OPS_TTL_MS（10 分钟）**，过期操作只作废不执行——防「git 恢复/重装后重启」被 profile 里持久化的陈旧队列复删（实测踩过：boot 对账把 git 恢复的文件又删了）。恢复 = 重装/升级（npm）或 git checkout；恢复后 10 分钟内重启建议顺手清 profile 队列（Edit packOpsJson → "{}"）。已知局限：drain 后 profile 文本残留至下次 settings 保存（惰性无害）。
+- **验证**：43 场景 + ci 全绿（scenario 18：TTL 内删/$ 保留/过期作废/幂等；client pendingPack 排他）。真机：绿→重置→灰兜底 "You are a helpful..."（重置熄灭）→ dispatch → 物理删除（git M）→ git checkout + 清队 + 重启 → 绿「供应商层 · mimo」回归。
+- **运维坑**：pkill 模式含在后台命令自身命令行里会自杀（用 [b] 字符类技巧）；HDSL 实例进程要确认真死（pgrep -af 全量核对）。
+
+## 2026-10-04 追记四（回归修复：行点击展开抛 ReferenceError）
+- 哨兵退役时 card.js 行点击预填残留 `raw !== UNSET_SENTINEL` 引用（常量已删）→ 点行即抛错、pick("expand") 不执行、全卡行无法展开。已改为 `typeof raw === "string"` 判断（物理删除世界无哨兵）。重建后真机验证展开/预填/收起正常。教训：删常量时 grep 全分片引用（本次 grep 了但只顾按钮处，漏了预填处）。

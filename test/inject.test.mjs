@@ -8,7 +8,7 @@
 import { strict as assert } from "node:assert";
 import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { createPromptbook, createAssembleHandler, createPromptSource, pendingModelOf, mirrorSeedKeys } from "../lib/index.js";
+import { createPromptbook, createAssembleHandler, createPromptSource, pendingRouteOf, mirrorSeedKeys } from "../lib/index.js";
 
 let passed = 0;
 const scenario = async (n, fn) => {
@@ -72,6 +72,15 @@ await scenario("2 hosted 模型：tool.<name> 命中改写、未命中保持官�
 	assert.equal(out.tools[1].description, "官方 read 描述");
 });
 
+await scenario("2b 供应商层命中：models/<供应商>.json 服务同供应商全部模型（mimo 特殊供应商语义）", async () => {
+	const pb = createPromptbook(tempPack({ layers: { "mimo": { [K]: "供应商注册人设" } } }));
+	const handler = createAssembleHandler({ pb, isHosted, systemKey: K });
+	for (const model of ["mimo-v2.6-flash", "mimo-v2.6-pro"]) {
+		const out = await handler(baseAssembly(), contextWith(model), async () => ({ ...structuredClone(baseAssembly()), variables: { provider: "mimo", model } }));
+		assert.deepEqual(out.sections, [{ name: "promptbook", order: 0, text: "供应商注册人设" }]);
+	}
+});
+
 await scenario("3 非 hosted 模型（deepseek-flash）：装配产物原样透传", async () => {
 	const pb = createPromptbook(tempPack({ layers: { "deepseek-flash": { [K]: "不该出现" } } }));
 	const handler = createAssembleHandler({ pb, isHosted, systemKey: K });
@@ -109,14 +118,16 @@ await scenario("6 systemKey 未注册（resolve=undefined）→ system 段不动
 
 console.log("[模型源]");
 
-await scenario("7 pendingModelOf：variables.model 优先，requestHeader 链后备", () => {
-	assert.equal(pendingModelOf(assemblyWith("mimo-v2.6-flash"), {}), "mimo-v2.6-flash");
-	assert.equal(pendingModelOf(assemblyWith(undefined), contextWith("mimo-v2.6-pro")), "mimo-v2.6-pro");
-	assert.equal(pendingModelOf(assemblyWith(undefined), contextWith(undefined)), undefined);
-	assert.equal(pendingModelOf({}, {}), undefined);
-	assert.equal(pendingModelOf(), undefined);
+await scenario("7 pendingRouteOf：variables 优先，requestHeader 链后备（provider/model 逐字段独立回退）", () => {
+	assert.deepEqual(pendingRouteOf(assemblyWith("mimo-v2.6-flash"), {}), { provider: "mimo", model: "mimo-v2.6-flash" });
+	assert.deepEqual(pendingRouteOf(assemblyWith(undefined), contextWith("mimo-v2.6-pro")), { provider: "mimo", model: "mimo-v2.6-pro" });
+	assert.deepEqual(pendingRouteOf(assemblyWith(undefined), contextWith(undefined)), { provider: undefined, model: undefined });
+	// 混合回退：variables 缺 provider 时从 header 补（逐字段独立）
+	assert.deepEqual(pendingRouteOf({ variables: { model: "solo" } }, contextWith("x")), { provider: "mimo", model: "solo" });
+	assert.deepEqual(pendingRouteOf({}, {}), { provider: undefined, model: undefined });
+	assert.deepEqual(pendingRouteOf(), { provider: undefined, model: undefined });
 	// 变量与后备并存时变量胜（装配期 requestHeader 是上一请求，非本次路由）
-	assert.equal(pendingModelOf(assemblyWith("mimo-v2.6-flash"), contextWith("deepseek-flash")), "mimo-v2.6-flash");
+	assert.deepEqual(pendingRouteOf(assemblyWith("mimo-v2.6-flash"), contextWith("deepseek-flash")), { provider: "mimo", model: "mimo-v2.6-flash" });
 });
 
 console.log("[dispatch 兜底通道]");
@@ -155,4 +166,4 @@ await scenario("10 mirrorSeedKeys：种子键镜像进 config.registryJson，幂
 	mirrorSeedKeys(pb, undefined); // config 缺省不炸
 });
 
-console.log(passed === 10 ? "\nPASS：10/10 场景全绿" : `\nFAIL：${10 - passed} 项未过`);
+console.log(passed === 11 ? "\nPASS：11/11 场景全绿" : `\nFAIL：${11 - passed} 项未过`);

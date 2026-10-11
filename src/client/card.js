@@ -197,6 +197,7 @@
 				const light = lightOf(traced, candidate);
 				const preview = overridden ? (parseEntries(state.userEntriesJson)[k.key]?.[candidate] ?? "") : (traced?.text ?? "");
 				const sourceTitle = sourceTitleText(traced?.source, modelDisplay, t, candidate);
+				const lightText = t("light" + light.charAt(0).toUpperCase() + light.slice(1));
 				const rowDraft = state.drafts[k.key] ?? "";
 				const pathText = sourcePathOf(traced?.source, state.layersJson);
 				const line = (0, jsx.jsxs)("div", {
@@ -205,7 +206,7 @@
 					// 收起键名列 100→170px（M3-R19，owner 定）：100px 是当年为高频验证
 					// 键名裁剪→悬浮弹卡特意收窄的，如今弹卡只是保底，常规键名不该频繁裁剪
 					children: [
-						(0, jsx.jsx)("span", { className: "pb-dot", role: "img", "aria-label": sourceTitle, style: { background: dotColorOf(light) } }),
+						(0, jsx.jsx)("span", { className: "pb-dot", role: "img", title: `${lightText}；${sourceTitle}`, "aria-label": `${lightText}；${sourceTitle}`, style: { background: dotColorOf(light) } }),
 						(0, jsx.jsx)("span", { className: "pb-keyname", style: { fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--dsw-alias-label-primary)" }, children: k.key }),
 						// 正文预览已并入下方常驻编辑器（M3-R3：textarea 折叠态扁平化即预览，
 						// 同一元素连续过渡），本行只剩 灯/键名/来源 三列。
@@ -389,7 +390,7 @@ children: [(0, jsx.jsxs)("svg", { width: 16, height: 16, viewBox: "0 0 24 24", x
 			return (0, jsx.jsxs)("div", { style: { display: "grid", gap: 12 }, children: [
 				(0, jsx.jsx)("style", { children: PB_STYLES }),
 				!state.writable ? (0, jsx.jsx)("p", { role: "status", style: NOTICE_STYLE.secondary, children: t("readOnly") }) : null,
-				(0, jsx.jsxs)("div", { ref: bodyRef, className: "pb-body", style: { position: "relative", display: "grid" }, children: [
+				(0, jsx.jsxs)("div", { ref: bodyRef, className: "pb-body", title: t("rowsEditHint"), style: { position: "relative", display: "grid" }, children: [
 					(0, jsx.jsx)("div", {
 						className: "pb-hoverbox" + (hoverBox?.on ? " on" : "") + (hoverInstant ? " instant" : ""),
 						style: hoverBox ? { top: hoverBox.top, left: hoverBox.left, width: hoverBox.width, height: hoverBox.height, borderRadius: hoverBox.radius } : undefined
@@ -422,8 +423,7 @@ children: [(0, jsx.jsxs)("svg", { width: 16, height: 16, viewBox: "0 0 24 24", x
 										(0, jsx.jsx)("span", { className: "pb-caret", children: "▾" })
 									]
 								})
-							] }),
-							(0, jsx.jsx)("p", { style: NOTICE_STYLE.tertiary, children: t("rowsHint") })
+							] })
 						] }),
 						...state.keyOptions.map((k, j) => {
 							const isExp = j === expIdx;
